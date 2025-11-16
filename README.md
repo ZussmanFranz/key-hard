@@ -37,8 +37,8 @@ key-hard
 |   └───src     # Source code of scraper
 |   └───results # Scraping results
 |
-└───tests # UI tests
+└───tests # Web tests
 
 ```
 
-Every empty directory was initialized with ```.gitkeep``` file inside of it. **It is needed to be deleted after any other content is created inside such directory.**
+Every empty directory was initialized with `.gitkeep` file inside of it. **It is needed to be deleted after any other content is created inside such directory.**
