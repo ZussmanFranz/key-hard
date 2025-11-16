@@ -23,3 +23,22 @@ TODO
 - **Matsvei Kasparovich**
 - **Valery Hulitsenka**
 - **Yuriy Dyedyk**
+
+## Project structure
+
+```markdown
+key-hard
+|   README.md
+|   .gitignore
+|
+└───src # Source code of a web page
+|
+└───scrapper # Scrapper from reference page
+|   └───src     # Source code of scrapper
+|   └───results # Scrapping results
+|
+└───tests # UI tests
+
+```
+
+Every empty directory was initialized with ```.gitkeep``` file inside of it. **It is needed to be deleted after any other content is created inside such directory.**
