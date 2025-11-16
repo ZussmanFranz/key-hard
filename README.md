@@ -33,9 +33,9 @@ key-hard
 |
 └───src # Source code of a web page
 |
-└───scrapper # Scrapper from reference page
-|   └───src     # Source code of scrapper
-|   └───results # Scrapping results
+└───scraper # Scrapper from reference page
+|   └───src     # Source code of scraper
+|   └───results # Scraping results
 |
 └───tests # UI tests
 
