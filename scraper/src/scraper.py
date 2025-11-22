@@ -54,6 +54,8 @@ class Scraper:
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
 
+    def get_all_products_from_category(self, category, max_pages=None):
+        ...
 
     def parse_products(self, categories=None):
         if not categories:
@@ -70,6 +72,7 @@ class Scraper:
                 logger.info(f"Parsing products for {cat['name']} (id: {cat['id']})")
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
+                self.get_all_products_from_category(cat)
 
     def parse_products_from_category(self, category):
         max_page = category["number_of_pages"]
