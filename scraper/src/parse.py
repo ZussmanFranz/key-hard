@@ -2,7 +2,7 @@ from scraper import Scraper
 
 if __name__ == "__main__":
     URL = "https://agrochowski.pl/"
-    RESULTS_PATH = "../results/results.json"
+    RESULTS_PATH = "scraper/results/results.json"
 
 
     scraper = Scraper(URL)
