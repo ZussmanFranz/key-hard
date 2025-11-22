@@ -3,6 +3,11 @@ import regex
 import json
 from slugify import slugify
 from bs4 import BeautifulSoup
+import logging_config
+import logging
+
+logging_config.setup_logging()
+logger = logging.getLogger(__name__)
 
 class Scraper:
     CATEGORIES_PATH = "webapi/front/pl_PL/categories/tree"
@@ -34,24 +39,23 @@ class Scraper:
         self.tree = response.json()
 
         if parse_pages:
-            self.parse_number_of_pages_rec(self.tree, debug=True)
+            self.parse_number_of_pages_rec(self.tree)
 
-    def parse_number_of_pages_rec(self, categories, debug=False):
+    def parse_number_of_pages_rec(self, categories):
         for cat in categories:
             sub_cats = cat["children"]
 
             # If category has children, go deeper
             if len(sub_cats) != 0:
-                self.parse_number_of_pages_rec(sub_cats, debug=debug)
+                self.parse_number_of_pages_rec(sub_cats)
             else:
                 # If has no children, we count pages
-                if debug:
-                    print(f"Count pages for {cat["name"]} (id: {cat["id"]})")
+                logger.info(f"Count pages for {cat['name']} (id: {cat['id']})")
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
 
 
-    def parse_products(self, categories=None, debug=False):
+    def parse_products(self, categories=None):
         if not categories:
             categories = self.tree
 
@@ -60,11 +64,10 @@ class Scraper:
 
             # If category has children, go deeper
             if len(sub_cats) != 0:
-                self.parse_products(sub_cats, debug=debug)
+                self.parse_products(sub_cats)
             else:
                 # If has no children, we parse products for category
-                if debug:
-                    print(f"Parsing products for {cat["name"]} (id: {cat["id"]})")
+                logger.info(f"Parsing products for {cat['name']} (id: {cat['id']})")
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
 
