@@ -55,13 +55,63 @@ class Scraper:
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
 
     def get_basic_product_info(self, product):
-        ...
-        
+        '''
+        Extracts basic product information from the product element.
+        Return: {
+            "product_name": "",
+            "product_link": "",
+            "product_author": "",
+            "price": {
+                "current": "",
+                "additional_info": "",
+            },
+            "product_thumbnail": "",
+        }
+        '''
+        product_id = product.get("data-product-id", "")
+        if not product_id:
+            return None
+        if not str(product_id).isdigit():
+            return None
+        product_id = int(str(product_id))
+        product_info = {"price": {}}
+        name_tag = product.find("a", class_="prodname")
+        if name_tag:
+            product_info["product_name"] = name_tag.get_text(strip=True)
+            product_info["product_link"] = name_tag["href"]
+
+        manufacturer_tag = product.find("div", class_="manufacturer")
+        if manufacturer_tag:
+            brand_tag = manufacturer_tag.find("a", class_="brand")
+            if brand_tag:
+                product_info["product_author"] = brand_tag.get_text(strip=True)
+
+        price_tag = product.find("div", class_="price")
+        if price_tag:
+            em_tag = price_tag.find("em")
+            if em_tag:
+                product_info['price']["current"] = em_tag.get_text(strip=True)
+
+        prod_image_link = product.find("a", class_="prodimage")
+        if prod_image_link:
+            img_tag = prod_image_link.find("img")
+            if img_tag:
+                product_info["product_thumbnail"] = img_tag.get("data-src", "")
+
+        info_tag = product.find("div", class_="price__additional-info")
+        if info_tag:
+            product_info['price']["additional_info"] = info_tag.get_text(strip=True)
+        return product_info
+            
+
     def get_detailed_product_info(self, product, product_info):
         ...
 
     def get_product_details(self, product):
         product_info = self.get_basic_product_info(product)
+        if not product_info:
+            return None
+        logger.info(f"Fetching detailed info for product: {product_info.get('product_name', 'Unknown')}")
         self.get_detailed_product_info(product, product_info)
         return product_info
 
@@ -81,6 +131,8 @@ class Scraper:
         products = BS_data.find_all("div", class_="product")
 
         for page in range(2, int(max_pages) + 1):
+            if page == 2:
+                break
             resp = requests.get(
                 self.url +
                 self.CATEGORY_PAGE_SUFFIX.format(
