@@ -54,6 +54,17 @@ class Scraper:
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
 
+    def get_basic_product_info(self, product):
+        ...
+        
+    def get_detailed_product_info(self, product, product_info):
+        ...
+
+    def get_product_details(self, product):
+        product_info = self.get_basic_product_info(product)
+        self.get_detailed_product_info(product, product_info)
+        return product_info
+
     def get_all_products_from_category(self, category, max_pages: int):
         resp = requests.get(
             self.url +
@@ -83,6 +94,10 @@ class Scraper:
             BS_data = BeautifulSoup(resp.content, "html.parser")
             products.extend(BS_data.find_all("div", class_="product"))
             logger.info(f"Fetched page {page} for category {category['name']}")
+            
+        for k, product in enumerate(products):
+            product_details = self.get_product_details(product)
+        
 
     def parse_products(self, categories=None):
         if not categories:
