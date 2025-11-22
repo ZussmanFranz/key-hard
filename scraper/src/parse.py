@@ -5,4 +5,5 @@ if __name__ == "__main__":
     
     scraper = Scraper(URL)
 
-    print(scraper.parse_categories())
+    scraper.parse_categories()
+    scraper.parse_products(debug=True)
