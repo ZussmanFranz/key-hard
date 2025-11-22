@@ -24,7 +24,7 @@ class Scraper:
         self._url = url
             
         
-    def parse_categories(self):
+    def parse_categories(self, parse_pages=True):
         response = requests.get(f'{self.url}/{self.CATEGORIES_PATH}')
 
         if not response.ok:
@@ -33,7 +33,8 @@ class Scraper:
         # A list of dictionaries 
         self.tree = response.json()
 
-        self.parse_number_of_pages_rec(self.tree, debug=True)
+        if parse_pages:
+            self.parse_number_of_pages_rec(self.tree, debug=True)
 
     def parse_number_of_pages_rec(self, categories, debug=False):
         for cat in categories:
@@ -116,4 +117,12 @@ class Scraper:
 
     def clean_for_url(self, cat_name):
         return slugify(cat_name).capitalize()
+    
+    def save_tree(self, path="results.json"):
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(self.tree, f, ensure_ascii=False, indent=4)
+
+    def load_tree(self, path="results.json"):
+        with open(path, "r", encoding="utf-8") as f:
+            self.tree = json.load(f)
 
