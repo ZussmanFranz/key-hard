@@ -38,7 +38,7 @@ class Scraper:
     def parse_number_of_pages_rec(self, categories, debug=False):
         for cat in categories:
             if debug:
-                print(f"Count pages for {cat["name"]}")
+                print(f"Count pages for {cat["name"]} (id: {cat["id"]})")
             
             max_page = self.parse_number_of_pages(cat)
             cat["number_of_pages"] = max_page
@@ -90,6 +90,10 @@ class Scraper:
         # get elements[-1] value
         soup = BeautifulSoup(response.text, 'html.parser')
         paginator = soup.find("ul", class_="paginator")
+
+        if not paginator:
+            # If category has only one page, there will be no paginator
+            return 1
 
         # (?r) flag searches from the end of string
         max_page = regex.search(r"(?r)(\d+)", paginator.text).group()
