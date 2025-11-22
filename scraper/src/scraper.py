@@ -1,6 +1,7 @@
 import requests
 import regex
 import json
+from slugify import slugify
 from bs4 import BeautifulSoup
 
 class Scraper:
@@ -48,7 +49,7 @@ class Scraper:
 
                 while True:
                     try:
-                        cat_products.append(self.parse_products_from_page(sub_cat, page_n))
+                        cat_products.append(self.parse_products_from_page(sub_cat, page_n, max_page))
                         
                         if debug:
                             print(f"{sub_cat['name']}: page {page_n}")
@@ -79,15 +80,20 @@ class Scraper:
 
         return int(max_page)
     
-    def parse_products_from_page(self, category, page_n):
-        suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category['name'], category_id=category['id'], page_number=page_n)
+    def parse_products_from_page(self, category, page_n, page_max):
+        category_name = self.clean_for_url(category['name'])
+        suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category_name, category_id=category['id'], page_number=page_n)
         
+        print(f"{self.url}/{suffix}")
+
         response = requests.get(f"{self.url}/{suffix}")
 
-        if (not response.ok) or (page_n > category['number_of_pages']):
+        if (not response.ok) or (page_n > page_max):
             raise ValueError("pages are over or the suffix is incorrect")
         
         # Example output, will be replaced with html parser
         return [f"a{page_n}", f"b{page_n}", f"c{page_n}"]
 
-    
+    def clean_for_url(self, cat_name):
+        return slugify(cat_name).capitalize()
+
