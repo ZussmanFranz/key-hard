@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: agrochowski_db
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin_password
+      MYSQL_DATABASE: prestashop
+      MYSQL_USER: prestashop
+      MYSQL_PASSWORD: prestashop_password
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - agro_net
+
+  prestashop:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: agrochowski_shop
+    restart: always
+    ports:
+      - "8080:80"
+      - "8443:443"
+    environment:
+      - DB_SERVER=db
+      - DB_USER=prestashop
+      - DB_PASSWD=prestashop_password
+      - DB_NAME=prestashop
+      - PS_INSTALL_AUTO=1
+      - PS_ERASE_DB=0  # Set to 1 if you want to wipe on restart, kept 0 for persistence
+      - PS_LANGUAGE=pl
+      - PS_COUNTRY=PL
+      - PS_DOMAIN=localhost:8443
+      - PS_ENABLE_SSL=1
+      - ADMIN_MAIL=admin@agrochowski.pl
+      - ADMIN_PASSWD=StrongAdminPass123!
+    volumes:
+      - shop_data:/var/www/html
+      - ../themes/agrochowski:/var/www/html/themes/agrochowski
+    depends_on:
+      - db
+    networks:
+      - agro_net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: agrochowski_pma
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=db
+      - PMA_USER=prestashop
+      - PMA_PASSWORD=prestashop_password
+    depends_on:
+      - db
+    networks:
+      - agro_net
+
+volumes:
+  db_data:
+  shop_data:
+
+networks:
+  agro_net:
