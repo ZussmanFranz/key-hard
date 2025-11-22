@@ -33,6 +33,22 @@ class Scraper:
         # A list of dictionaries 
         self.tree = response.json()
 
+        self.parse_number_of_pages_rec(self.tree, debug=True)
+
+    def parse_number_of_pages_rec(self, categories, debug=False):
+        for cat in categories:
+            if debug:
+                print(f"Count pages for {cat["name"]}")
+            
+            max_page = self.parse_number_of_pages(cat)
+            cat["number_of_pages"] = max_page
+
+            sub_cats = cat["children"]
+
+            # If category has children, count pages for them recursively
+            if len(sub_cats) != 0:
+                self.parse_number_of_pages_rec(sub_cats, debug=debug)
+
 
     def parse_products(self, debug=False):
         for cat in self.tree:
