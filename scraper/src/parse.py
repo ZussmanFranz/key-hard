@@ -7,6 +7,9 @@ if __name__ == "__main__":
 
     scraper = Scraper(URL)
 
-    scraper.parse_categories()
+    # scraper.parse_categories()
+    scraper.load_tree(RESULTS_PATH)
+
+    scraper.parse_products(debug=True)
 
     scraper.save_tree(RESULTS_PATH)

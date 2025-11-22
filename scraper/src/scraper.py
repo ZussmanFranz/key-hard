@@ -38,10 +38,6 @@ class Scraper:
 
     def parse_number_of_pages_rec(self, categories, debug=False):
         for cat in categories:
-            # Disabled, so we count pages only for "leaf" categories
-            # max_page = self.parse_number_of_pages(cat)
-            # cat["number_of_pages"] = max_page
-
             sub_cats = cat["children"]
 
             # If category has children, go deeper
@@ -55,33 +51,44 @@ class Scraper:
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
 
 
-    def parse_products(self, debug=False):
-        for cat in self.tree:
-            for sub_cat in cat['children']:
-                page_n = 1
+    def parse_products(self, categories=None, debug=False):
+        if not categories:
+            categories = self.tree
 
-                max_page = self.parse_number_of_pages(sub_cat)
-                
-                # Assign new atribute to category
-                sub_cat["number_of_pages"] = max_page
+        for cat in categories:
+            sub_cats = cat["children"]
 
-                # Will be assigned as sub_cat['children']
-                cat_products = []
+            # If category has children, go deeper
+            if len(sub_cats) != 0:
+                self.parse_products(sub_cats, debug=debug)
+            else:
+                # If has no children, we parse products for category
+                if debug:
+                    print(f"Parsing products for {cat["name"]} (id: {cat["id"]})")
 
-                while True:
-                    try:
-                        cat_products.append(self.parse_products_from_page(sub_cat, page_n, max_page))
-                        
-                        if debug:
-                            print(f"{sub_cat['name']}: page {page_n}")
+                cat["number_of_pages"] = self.parse_number_of_pages(cat)
 
-                        page_n += 1
-                    except ValueError:
-                        # Will be raised if pages are over
-                        break
-                
-                # Assign products to category
-                sub_cat['children'] = cat_products
+    def parse_products_from_category(self, category):
+        max_page = category["number_of_pages"]
+
+        for i in range(max_page):
+            category["children"].append(self.parse_products_from_page(category, i))
+
+    def parse_products_from_page(self, category, page_n):
+        category_name = self.clean_for_url(category['name'])
+        suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category_name, category_id=category['id'], page_number=page_n)
+        
+        print(f"{self.url}/{suffix}")
+
+        response = requests.get(f"{self.url}/{suffix}")
+
+        if not response.ok:
+            # Will it return 404, or just a blank page?
+            raise ValueError("failed to parse category page")
+        
+        # Example output, will be replaced with html parser
+        return [f"a{page_n}", f"b{page_n}", f"c{page_n}"]
+
 
     def parse_number_of_pages(self, category):
         suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category['name'], category_id=category['id'], page_number=1)
@@ -104,20 +111,7 @@ class Scraper:
         max_page = regex.search(r"(?r)(\d+)", paginator.text).group()
 
         return int(max_page)
-    
-    def parse_products_from_page(self, category, page_n, page_max):
-        category_name = self.clean_for_url(category['name'])
-        suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category_name, category_id=category['id'], page_number=page_n)
-        
-        print(f"{self.url}/{suffix}")
 
-        response = requests.get(f"{self.url}/{suffix}")
-
-        if (not response.ok) or (page_n > page_max):
-            raise ValueError("pages are over or the suffix is incorrect")
-        
-        # Example output, will be replaced with html parser
-        return [f"a{page_n}", f"b{page_n}", f"c{page_n}"]
 
     def clean_for_url(self, cat_name):
         return slugify(cat_name).capitalize()
