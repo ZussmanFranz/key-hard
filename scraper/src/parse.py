@@ -10,6 +10,6 @@ if __name__ == "__main__":
     # scraper.parse_categories()
     scraper.load_tree(RESULTS_PATH)
 
-    scraper.parse_products(debug=True)
+    scraper.parse_products()
 
     scraper.save_tree(RESULTS_PATH)
