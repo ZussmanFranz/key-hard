@@ -1,3 +1,4 @@
+import re
 import requests
 import regex
 import json
@@ -54,8 +55,39 @@ class Scraper:
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
 
-    def get_all_products_from_category(self, category, max_pages=None):
-        ...
+    def get_all_products_from_category(self, category, max_pages: int):
+        resp = requests.get(
+            self.url +
+            self.CATEGORY_PAGE_SUFFIX.format(
+                category_name=category['name'],
+                category_id=category['id'],
+                page_number=1
+            )
+        )
+        if not resp.ok:
+            raise ValueError("failed to parse category page")
+        BS_data = BeautifulSoup(resp.content, "html.parser")
+
+        products = BS_data.find_all("div", class_="product")
+
+        for page in range(2, int(max_pages) + 1):
+            resp = requests.get(
+                self.url +
+                self.CATEGORY_PAGE_SUFFIX.format(
+                    category_name=category['name'],
+                    category_id=category['id'],
+                    page_number=page
+                )
+            )
+            if not resp.ok:
+                raise ValueError("failed to parse category page")
+            BS_data = BeautifulSoup(resp.content, "html.parser")
+            products.extend(BS_data.find_all("div", class_="product"))
+            logger.info(f"Fetched page {page} for category {category['name']}")
+            
+        # for k, product in enumerate(products):
+        #     product_details = self.get_product_details(product)
+        
 
     def parse_products(self, categories=None):
         if not categories:
@@ -72,7 +104,7 @@ class Scraper:
                 logger.info(f"Parsing products for {cat['name']} (id: {cat['id']})")
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
-                self.get_all_products_from_category(cat)
+                self.get_all_products_from_category(cat, cat["number_of_pages"])
 
     def parse_products_from_category(self, category):
         max_page = category["number_of_pages"]
