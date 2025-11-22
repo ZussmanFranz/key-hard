@@ -1,4 +1,3 @@
-import re
 import requests
 import regex
 import json
@@ -84,10 +83,6 @@ class Scraper:
             BS_data = BeautifulSoup(resp.content, "html.parser")
             products.extend(BS_data.find_all("div", class_="product"))
             logger.info(f"Fetched page {page} for category {category['name']}")
-            
-        # for k, product in enumerate(products):
-        #     product_details = self.get_product_details(product)
-        
 
     def parse_products(self, categories=None):
         if not categories:
