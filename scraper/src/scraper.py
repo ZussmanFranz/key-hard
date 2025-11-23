@@ -282,9 +282,6 @@ class Scraper:
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
                 products = self.get_all_products_from_category(cat, cat["number_of_pages"])
-                with open("temp.json", "w", encoding="utf-8") as f:
-                    json.dump(products, f, ensure_ascii=False, indent=4)
-                exit()
 
     def parse_products_from_category(self, category):
         max_page = category["number_of_pages"]
