@@ -218,6 +218,9 @@ class Scraper:
 
             products_estimated += cat['number_of_pages'] * self.products_per_page
 
+        if pages_debt:
+            logger.error(f"There is not enough products in a cropped categories")
+
         logger.info(f"Finishing cropping pages. Estimated number of products ~{products_estimated}")
 
         logger.info("--- Numbers of pages have been cropped successfully! ---")
