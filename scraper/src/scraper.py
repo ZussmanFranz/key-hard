@@ -263,6 +263,8 @@ class Scraper:
 
 
     def parse_products(self):
+        logger.info("--- Started parsing products ---")
+
         for cat in self.leaf_cats:
             # If has no children, we parse products for category
             logger.info(f"Parsing products for {cat['name']} (id: {cat['id']})")
@@ -270,19 +272,22 @@ class Scraper:
             # Add products from category to parsed products
             self.products.extend(self.parse_products_from_category(cat))
 
+        logger.info(f"--- Parsed {len(self.products)} products ---")
+
     def parse_products_from_category(self, category):
         max_page = category["number_of_pages"]
         products = []
 
         for i in range(max_page):
-            products.extend(self.parse_products_from_page(category, i))
+            products.extend(self.parse_products_from_page(category, i + 1))
 
         products_full_info = []
 
         for _, product in enumerate(products):
             product_details, product_id = self.parse_product_details(product)
             if product_details:
-                # product_details['category_id'] = category['id'] ??????
+                product_details['id'] = product_id
+                product_details['category_id'] = category['id']
                 products_full_info.append(product_details)
 
         return products_full_info
@@ -528,11 +533,24 @@ class Scraper:
     def clean_for_url(self, cat_name):
         return slugify(cat_name).capitalize()
     
-    def save_tree(self, path="results.json"):
+    def save_tree(self, path="categories.json"):
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.tree, f, ensure_ascii=False, indent=4)
+            logger.info(f"Categories tree has been saved to {path}")
 
-    def load_tree(self, path="results.json"):
+    def load_tree(self, path="categories.json"):
         with open(path, "r", encoding="utf-8") as f:
             self.tree = json.load(f)
+            logger.info(f"Categories tree has been load from {path}")
+
+    def save_products(self, path="products.json"):
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(self.products, f, ensure_ascii=False, indent=4)
+            logger.info(f"Products have been saved to {path}")
+        
+    def load_products(self, path="products.json"):
+        with open(path, "r", encoding="utf-8") as f:
+            self.products = json.load(f)
+            logger.info(f"Products have been load from {path}")
+
 
