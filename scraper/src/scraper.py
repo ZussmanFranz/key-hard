@@ -39,7 +39,11 @@ class Scraper:
 
         # List of references for each leaf category
         self.leaf_cats = []
+        
         self.products_per_page = None
+
+        # List of dictionaries. TODO: add save to json method
+        self.products = []
 
         if crop:
             self.crop = crop
@@ -139,6 +143,37 @@ class Scraper:
                 # Append a reference to this category to leaf categories list
                 self.leaf_cats.append(cat)
 
+    def parse_number_of_pages(self, category):
+        suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category['name'], category_id=category['id'], page_number=1)
+        
+        response = requests.get(f"{self.url}/{suffix}")
+
+        if not response.ok:
+            raise ValueError("pages are over or the suffix is incorrect")
+        
+        # parse all the <li> elements from <ui class="selected">
+        soup = BeautifulSoup(response.text, 'html.parser')
+        paginator = soup.find("ul", class_="paginator")
+
+        if not paginator:
+            # If category has only one page, there will be no paginator
+            return 1
+
+        # (?r) flag searches from the end of string
+        max_page = regex.search(r"(?r)(\d+)", paginator.text).group()
+
+        # Parse number of products per page once for the whole website, 
+        # but the page must be full
+        if (not self.products_per_page) and (int(max_page) > 1):
+            self.products_per_page = self.parse_products_per_page(soup)
+
+        return int(max_page)
+    
+    def parse_products_per_page(self, soup):
+        return len(soup.find_all("div", class_="product"))
+
+
+
     def crop_categories_tree(self):
         '''
         Returns a cropped tree, but does not assign it automatically
@@ -226,9 +261,54 @@ class Scraper:
         logger.info("--- Numbers of pages have been cropped successfully! ---")
 
 
-        
 
+    def parse_products(self):
+        for cat in self.leaf_cats:
+            # If has no children, we parse products for category
+            logger.info(f"Parsing products for {cat['name']} (id: {cat['id']})")
 
+            # Add products from category to parsed products
+            self.products.extend(self.parse_products_from_category(cat))
+
+    def parse_products_from_category(self, category):
+        max_page = category["number_of_pages"]
+        products = []
+
+        for i in range(max_page):
+            products.extend(self.parse_products_from_page(category, i))
+
+        products_full_info = []
+
+        for _, product in enumerate(products):
+            product_details, product_id = self.parse_product_details(product)
+            if product_details:
+                # product_details['category_id'] = category['id'] ??????
+                products_full_info.append(product_details)
+
+        return products_full_info
+
+    def parse_products_from_page(self, category, page_n):
+        category_name = self.clean_for_url(category['name'])
+        suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category_name, category_id=category['id'], page_number=page_n)
+
+        response = requests.get(f"{self.url}/{suffix}")
+
+        if not response.ok:
+            raise ValueError("failed to parse category page")
+    
+        BS_data = BeautifulSoup(response.content, "html.parser")
+        products = BS_data.find_all("div", class_="product")
+        logger.info(f"Fetched page {page_n} for category {category['name']}")
+
+        return products
+
+    def parse_product_details(self, product):
+        product_info, product_id = self.parse_basic_product_info(product)
+        if not product_info:
+            return None, None
+        logger.info(f"Fetching detailed info for product: {product_info.get('product_name', 'Unknown')}")
+        self.parse_detailed_product_info(product_info)
+        return product_info, product_id
 
     def parse_basic_product_info(self, product):
         '''
@@ -294,7 +374,6 @@ class Scraper:
         if info_tag:
             product_info['price']["additional_info"] = info_tag.get_text(strip=True)
         return product_info, product_id
-
         
     def parse_detailed_product_info(self, product_info):
         '''
@@ -444,120 +523,7 @@ class Scraper:
         if tags:
             product_info["tags"] = tags
             
-    def parse_product_details(self, product):
-        product_info, product_id = self.parse_basic_product_info(product)
-        if not product_info:
-            return None, None
-        logger.info(f"Fetching detailed info for product: {product_info.get('product_name', 'Unknown')}")
-        self.parse_detailed_product_info(product_info)
-        return product_info, product_id
-
-    def parse_all_products_from_category(self, category, max_pages: int):
-        resp = requests.get(
-            self.url +
-            self.CATEGORY_PAGE_SUFFIX.format(
-                category_name=category['name'],
-                category_id=category['id'],
-                page_number=1
-            )
-        )
-        if not resp.ok:
-            raise ValueError("failed to parse category page")
-        BS_data = BeautifulSoup(resp.content, "html.parser")
-
-        products = BS_data.find_all("div", class_="product")
-
-        for page in range(2, int(max_pages) + 1):
-            resp = requests.get(
-                self.url +
-                self.CATEGORY_PAGE_SUFFIX.format(
-                    category_name=category['name'],
-                    category_id=category['id'],
-                    page_number=page
-                )
-            )
-            if not resp.ok:
-                raise ValueError("failed to parse category page")
-            BS_data = BeautifulSoup(resp.content, "html.parser")
-            products.extend(BS_data.find_all("div", class_="product"))
-            logger.info(f"Fetched page {page} for category {category['name']}")
-            
-        products_json = {}
-        for _, product in enumerate(products):
-            product_details, product_id = self.parse_product_details(product)
-            if product_details:
-                products_json[product_id] = product_details
-
-        return products_json
-
-    def parse_products(self, categories=None):
-        if not categories:
-            categories = self.tree
-
-        for cat in categories:
-            sub_cats = cat["children"]
-
-            # If category has children, go deeper
-            if len(sub_cats) != 0:
-                self.parse_products(sub_cats)
-            else:
-                # If has no children, we parse products for category
-                logger.info(f"Parsing products for {cat['name']} (id: {cat['id']})")
-
-                products = self.parse_all_products_from_category(cat, cat["number_of_pages"])
-
-    def parse_products_from_category(self, category):
-        max_page = category["number_of_pages"]
-
-        for i in range(max_page):
-            category["children"].append(self.parse_products_from_page(category, i))
-
-    def parse_products_from_page(self, category, page_n):
-        category_name = self.clean_for_url(category['name'])
-        suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category_name, category_id=category['id'], page_number=page_n)
-        
-        print(f"{self.url}/{suffix}")
-
-        response = requests.get(f"{self.url}/{suffix}")
-
-        if not response.ok:
-            # Will it return 404, or just a blank page?
-            raise ValueError("failed to parse category page")
-        
-        # Example output, will be replaced with html parser
-        return [f"a{page_n}", f"b{page_n}", f"c{page_n}"]
-
-
-    def parse_number_of_pages(self, category):
-        suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category['name'], category_id=category['id'], page_number=1)
-        
-        response = requests.get(f"{self.url}/{suffix}")
-
-        if not response.ok:
-            raise ValueError("pages are over or the suffix is incorrect")
-        
-        # parse all the <li> elements from <ui class="selected">
-        # get elements[-1] value
-        soup = BeautifulSoup(response.text, 'html.parser')
-        paginator = soup.find("ul", class_="paginator")
-
-        if not paginator:
-            # If category has only one page, there will be no paginator
-            return 1
-
-        # (?r) flag searches from the end of string
-        max_page = regex.search(r"(?r)(\d+)", paginator.text).group()
-
-        # Parse number of products per page once for the whole website, 
-        # but the page must be full
-        if (not self.products_per_page) and (int(max_page) > 1):
-            self.products_per_page = self.parse_products_per_page(soup)
-
-        return int(max_page)
     
-    def parse_products_per_page(self, soup):
-        return len(soup.find_all("div", class_="product"))
-
 
     def clean_for_url(self, cat_name):
         return slugify(cat_name).capitalize()
