@@ -119,8 +119,7 @@ class Scraper:
             product_info['price']["additional_info"] = info_tag.get_text(strip=True)
         return product_info, product_id
 
-            
-    # TODO: delivery, stock status
+        
     def parse_detailed_product_info(self, product_info):
         '''
         Fills in detailed product information into the product_info dictionary.
