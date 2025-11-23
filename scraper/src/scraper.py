@@ -36,6 +36,9 @@ class Scraper:
 
         self.url = url
 
+        # List of references for each leaf category
+        self.leaf_cats = []
+
         if crop:
             self.crop = crop
             self.n_cats = n_cats
@@ -128,6 +131,9 @@ class Scraper:
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
 
+                # Append a reference to this category to leaf categories list
+                self.leaf_cats.append(cat)
+
     def crop_categories_tree(self):
         '''
         Returns a cropped tree, but does not assign it automatically
@@ -143,14 +149,14 @@ class Scraper:
         
         logger.info("--- Started cropping categories tree ---")
 
-        # copies first n_cats categories
+        # Copies first n_cats categories
         cropped_tree = copy.deepcopy(self.tree[:self.n_cats])
 
         def crop_subcategories(current_layer, layers_left):
-            # only first n_subcats for each category stay
+            # Only first n_subcats for each category stay
             for cat in current_layer:
                 if layers_left <= 0:
-                    # this was the last layer, so trim any further layers and stop
+                    # This was the last layer, so trim any further layers and stop
                     cat['children'] = []
                     logger.info(f"Remove children for {cat['name']} (id: {cat['id']})")
                 else:
