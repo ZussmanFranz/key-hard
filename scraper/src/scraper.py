@@ -5,6 +5,7 @@ from slugify import slugify
 from bs4 import BeautifulSoup
 import logging_config
 import logging
+import copy
 
 logging_config.setup_logging()
 logger = logging.getLogger(__name__)
@@ -108,6 +109,9 @@ class Scraper:
         # A list of dictionaries 
         self.tree = response.json()
 
+        if self.crop:
+            self.tree = self.crop_categories_tree()
+
         if parse_pages:
             self.parse_number_of_pages_rec(self.tree)
 
@@ -128,7 +132,7 @@ class Scraper:
         '''
         Returns a cropped tree, but does not assign it automatically
 
-        Crops categoris tree 
+        Crops categories tree 
         so it fits requrements 
         using class parameters:
             n_cats,
@@ -136,6 +140,32 @@ class Scraper:
             n_layers,
             n_products
         '''
+        
+        logger.info("--- Started cropping categories tree ---")
+
+        # copies first n_cats categories
+        cropped_tree = copy.deepcopy(self.tree[:self.n_cats])
+
+        def crop_subcategories(current_layer, layers_left):
+            # only first n_subcats for each category stay
+            for cat in current_layer:
+                if layers_left <= 0:
+                    # this was the last layer, so trim any further layers and stop
+                    cat['children'] = []
+                    logger.info(f"Remove children for {cat['name']} (id: {cat['id']})")
+                else:
+                    logger.info(f"Crop subcategories for {cat['name']} (id: {cat['id']})")
+                    cat['children'] = cat['children'][:self.n_subcats]
+                    crop_subcategories(cat['children'], layers_left - 1)
+
+        crop_subcategories(cropped_tree, self.n_layers)
+        
+        logger.info("--- Categories tree has been cropped successfully! ---")
+        return cropped_tree
+
+
+        
+
 
 
     def parse_basic_product_info(self, product):
