@@ -5,6 +5,8 @@ from slugify import slugify
 from bs4 import BeautifulSoup
 import logging_config
 import logging
+import copy
+from math import ceil
 
 logging_config.setup_logging()
 logger = logging.getLogger(__name__)
@@ -13,8 +15,38 @@ class Scraper:
     CATEGORIES_PATH = "webapi/front/pl_PL/categories/tree"
     CATEGORY_PAGE_SUFFIX = "pl/c/{category_name}/{category_id}/{page_number}"
 
-    def __init__(self, url):
+    def __init__(self, url, crop=False, n_cats=None, n_subcats=None, n_layers=None, n_products=None):
+        '''
+        Initializes a parser object to collect data 
+        about categories tree and each product in them from the url.
+
+        Parameters:
+            url         web shop to parse from (required attibute),
+
+            crop        optional flag to crop categories tree for
+                        specific number of categories and products only 
+                            (if True, all the attributes below are required),
+            
+            n_cats      number of top-level categories
+            n_subcats   number of subcategories for each layer
+            n_layers    number of subcategores layers, for example:
+                            1 == "only top level has sub-categories"
+                            2 == "each subcategory of top level also has subcategories"
+            n_products  maximum number of products to parse
+        '''
+
         self.url = url
+
+        # List of references for each leaf category
+        self.leaf_cats = []
+        self.products_per_page = None
+
+        if crop:
+            self.crop = crop
+            self.n_cats = n_cats
+            self.n_subcats = n_subcats
+            self.n_layers = n_layers
+            self.n_products = n_products
 
     
     @property
@@ -25,8 +57,52 @@ class Scraper:
     def url(self, url):
         if not requests.get(url).ok:
             raise ValueError("Failed requesting from url")
-        
         self._url = url
+            
+
+    @property
+    def n_cats(self):
+        return self._n_cats
+    
+    @n_cats.setter
+    def n_cats(self, n_cats):
+        if not n_cats or type(n_cats) != int or n_cats <= 0:
+            raise ValueError("n_cats must be defined")
+        self._n_cats = n_cats
+
+
+    @property
+    def n_subcats(self):
+        return self._n_subcats
+    
+    @n_subcats.setter
+    def n_subcats(self, n_subcats):
+        if not n_subcats or type(n_subcats) != int or n_subcats <= 0:
+            raise ValueError("n_subcats must be defined")
+        self._n_subcats = n_subcats
+
+
+    @property
+    def n_layers(self):
+        return self._n_layers
+    
+    @n_layers.setter
+    def n_layers(self, n_layers):
+        if not n_layers or type(n_layers) != int or n_layers <= 0:
+            raise ValueError("n_layers must be defined")
+        self._n_layers = n_layers
+
+
+    @property
+    def n_products(self):
+        return self._n_products
+    
+    @n_products.setter
+    def n_products(self, n_products):
+        if not n_products or type(n_products) != int or n_products <= 0:
+            raise ValueError("n_products must be defined")
+        self._n_products = n_products
+
             
         
     def parse_categories(self, parse_pages=True):
@@ -38,8 +114,14 @@ class Scraper:
         # A list of dictionaries 
         self.tree = response.json()
 
+        if self.crop:
+            self.tree = self.crop_categories_tree()
+
         if parse_pages:
             self.parse_number_of_pages_rec(self.tree)
+
+        if self.crop:
+            self.crop_pages()
 
     def parse_number_of_pages_rec(self, categories):
         for cat in categories:
@@ -53,6 +135,100 @@ class Scraper:
                 logger.info(f"Count pages for {cat['name']} (id: {cat['id']})")
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
+
+                # Append a reference to this category to leaf categories list
+                self.leaf_cats.append(cat)
+
+    def crop_categories_tree(self):
+        '''
+        Returns a cropped tree, but does not assign it automatically
+
+        Crops categories tree 
+        so it fits requrements 
+        using class parameters:
+            n_cats,
+            n_subcats,
+            n_layers
+        '''
+        
+        logger.info("--- Started cropping categories tree ---")
+
+        # Copies first n_cats categories
+        cropped_tree = copy.deepcopy(self.tree[:self.n_cats])
+
+        def crop_subcategories(current_layer, layers_left):
+            # Only first n_subcats for each category stay
+            for cat in current_layer:
+                if layers_left <= 0:
+                    # This was the last layer, so trim any further layers and stop
+                    cat['children'] = []
+                    logger.info(f"Remove children for {cat['name']} (id: {cat['id']})")
+                else:
+                    logger.info(f"Crop subcategories for {cat['name']} (id: {cat['id']})")
+                    cat['children'] = cat['children'][:self.n_subcats]
+                    crop_subcategories(cat['children'], layers_left - 1)
+
+        crop_subcategories(cropped_tree, self.n_layers)       
+
+        logger.info("--- Categories tree has been cropped successfully! ---")
+        return cropped_tree
+    
+    def crop_pages(self):
+        '''
+        Crops page numbers for each leaf category
+        based on n_products parameter
+        '''
+
+        logger.info("--- Started cropping numbers of pages ---")
+        logger.info(f"Number of products per page: {self.products_per_page}")
+
+
+        # Sort leaf categories by number of pages in the ascending order
+        self.leaf_cats.sort(key=lambda x: x['number_of_pages'])
+        
+        # In perfect world each category should contain exactly that much products
+        optimal_products_per_cat = self.n_products / len(self.leaf_cats)
+        
+        # Round up to be sure that products requirement will be satisfied
+        optimal_pages_per_cat = ceil(optimal_products_per_cat/self.products_per_page)
+        
+        # If there is not enough pages in category, the debt is increased.
+        pages_debt = 0
+
+        # For debug purpouse
+        products_estimated = 0
+
+        # Iterate through them and try to achieve perfect pages distribution
+        for cat in self.leaf_cats:
+            # Substract one to be sure that every page is full
+            pages = cat['number_of_pages'] - 1
+
+            if pages > optimal_pages_per_cat:
+                pages_gain = 0
+
+                if pages_debt:
+                    # Gain cannot be higher than debt
+                    pages_gain = min(pages - optimal_pages_per_cat, pages_debt)
+                    pages_debt -= pages_gain
+
+                cat['number_of_pages'] = optimal_pages_per_cat + pages_gain
+            else:
+                # There is not enough pages, so the debt is increased and number of pages is unchanged
+                pages_debt += optimal_pages_per_cat - pages
+
+            products_estimated += cat['number_of_pages'] * self.products_per_page
+
+        if pages_debt:
+            logger.error(f"There is not enough products in a cropped categories")
+
+        logger.info(f"Finishing cropping pages. Estimated number of products ~{products_estimated}")
+
+        logger.info("--- Numbers of pages have been cropped successfully! ---")
+
+
+        
+
+
 
     def parse_basic_product_info(self, product):
         '''
@@ -372,7 +548,15 @@ class Scraper:
         # (?r) flag searches from the end of string
         max_page = regex.search(r"(?r)(\d+)", paginator.text).group()
 
+        # Parse number of products per page once for the whole website, 
+        # but the page must be full
+        if (not self.products_per_page) and (int(max_page) > 1):
+            self.products_per_page = self.parse_products_per_page(soup)
+
         return int(max_page)
+    
+    def parse_products_per_page(self, soup):
+        return len(soup.find_all("div", class_="product"))
 
 
     def clean_for_url(self, cat_name):
