@@ -1,43 +1,31 @@
 {**
  * Agrochowski Theme Header - Clean Rebuild
  *}
-{block name='header_banner'}
-  <div class="header-banner">
-    {hook h='displayBanner'}
-  </div>
-{/block}
 
 {block name='header_nav'}
   <div class="custom-topbar">
     <div class="container">
       <div class="topbar-flex">
-        
-        {* ЛЕВАЯ ЧАСТЬ: Текст *}
         <div class="topbar-left">
            Bezpieczne pakowanie | 30 dni na zwrot | Darmowa wysyłka od 200 zł
         </div>
         
-        {* ПРАВАЯ ЧАСТЬ: Иконки + Телефон + Часы *}
         <div class="topbar-right">
-            <!-- Соцсети -->
             <div class="social-icons">
                 <a href="#" class="fb"><i class="fa-brands fa-facebook-f"></i></a>
                 <a href="#" class="insta"><i class="fa-brands fa-instagram"></i></a>
                 <a href="#" class="tiktok"><i class="fa-brands fa-tiktok"></i></a>
             </div>
             
-            <!-- Телефон -->
             <div class="phone-block">
                 <i class="fa-solid fa-phone"></i>
                 <a href="tel:228702123">22 870 21 23</a>
             </div>
             
-            <!-- Часы работы -->
             <div class="hours-block">
                 (Pon.-Pt.: 9:00–19:00, Sob.: 9:00–15:00)
             </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -46,44 +34,33 @@
 {block name='header_top'}
   <div class="header-row">
       <div class="container">
-           
-           {* === ЕДИНЫЙ БЛОК: ЛОГО + ПОИСК + КНОПКИ === *}
            <div class="header-content-wrapper">
             
-                {* 1. ЛОГОТИП *}
+                {* ЛОГО *}
                 <div class="logo-block" id="_desktop_logo">
                   <a href="{$urls.base_url}" title="{$shop.name}">
                     <img class="logo img-responsive" src="{$shop.logo_details.src}" alt="{$shop.name}">
                   </a>
                 </div>
 
-                {* 2. ПОИСК *}
+                {* ПОИСК *}
                 <div class="search-block">
-                    <form method="get" action="{$urls.pages.search}">
-                        <input type="hidden" name="controller" value="search">
-                        <div class="search-input-group">
-                            <input type="text" name="s" class="search-input" placeholder="Szukaj autora, tytułu lub kategorii" aria-label="Szukaj">
-                            <button type="submit" class="search-btn">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                            </button>
-                        </div>
-                    </form>
+                    {hook h='displaySearch'}
                 </div>
                 
-                {* 3. КНОПКИ (Аккаунт + Корзина) *}
+                {* Аккаунт + Корзина *}
                 <div class="buttons-block">
                     <div class="combined-actions">
-                        {* Кнопка Аккаунта *}
+                    
+                   	 {* Кнопка Аккаунта *}
                         <a href="{$urls.pages.my_account}" class="user-link" rel="nofollow">
                             <i class="fa-regular fa-user"></i>
                             <span>Moje konto</span>
                         </a>
-                        
+
                         {* Кнопка Корзины *}
-                        <a href="{$urls.pages.cart}" class="cart-link" rel="nofollow">
-                            <i class="fa-solid fa-cart-shopping"></i>
-                            <span>Koszyk ({if isset($cart.products_count)}{$cart.products_count}{else}0{/if})</span>
-                        </a>
+                        {hook h='displayNav2'}
+                        
 
                         {* Выпадающее окно *}
                         <div class="basket-dropdown">
@@ -111,7 +88,7 @@
           </div> {* Конец header-content-wrapper *}
       </div>
       
-      {* НИЖНИЙ ЭТАЖ: МЕНЮ *}
+      {* МЕНЮ *}
       <div class="header-menu-row">
         <div class="container">
             <nav class="innermenu">

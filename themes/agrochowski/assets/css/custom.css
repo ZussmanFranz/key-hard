@@ -65,6 +65,7 @@
     background-repeat: no-repeat;
     background-size: auto; /* или auto, как у вас было */
     background-position: top center;
+    background-color: #fcf8e8;  
     position: relative;
     padding-top: 105px; 
     padding-bottom: 0;
@@ -171,7 +172,53 @@
     position: relative;
 }
 
-.user-link, .cart-link {
+#_desktop_cart,
+.blockcart,
+.blockcart .header {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* 2. Стилизуем ссылку внутри (чтобы выглядела как кнопка) */
+.blockcart .header a {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 30px; /* Широкая зона клика, как у Аккаунта */
+    
+    color: #333;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    white-space: nowrap;
+    
+    border-left: 1px solid #eee; /* Линия слева */
+    cursor: pointer;
+}
+
+/* 3. Иконка и текст */
+.blockcart .header a i {
+    color: #6b4027;
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+/* 4. Ховер эффект */
+.blockcart .header a:hover {
+    background-color: #f9f9f9;
+}
+
+/* Если нужно скрыть стандартные стили PrestaShop, которые могут мешать */
+.blockcart {
+    background: transparent;
+    margin: 0;
+    padding: 0;
+    width: auto;
+}
+
+.user-link {
     display: flex;
     align-items: center;
     height: 100%;
@@ -186,7 +233,7 @@
     cursor: pointer;
 }
 .user-link i, .cart-link i { color: #6b4027; margin-right: 10px; font-size: 18px; }
-.user-link:hover, .cart-link:hover { background-color: #f9f9f9; }
+.user-link:hover{ background-color: #f9f9f9; }
 
 .basket-dropdown {
     display: none;
@@ -521,3 +568,39 @@
 .footer-links-wrapper .links > .row {
     display: flex;
 }
+
+.search-block {
+    position: relative !important;
+    z-index: 10 !important;
+    margin: 0 30px !important;
+    flex-grow: 1 !important;
+}
+
+#search_widget {
+    margin: 0 !important;
+    width: 100% !important;
+    overflow: visible !important; /* Разрешаем выход за границы, если что */
+}
+
+#search_widget form {
+    position: relative !important;
+    height: 50px !important;
+}
+
+#search_widget form input[type="text"] {
+    position: relative !important;
+    z-index: 1 !important;
+    width: 125% !important;
+    height: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    
+    /* ВАЖНО: Отступ слева маленький, справа - большой (под кнопку) */
+    padding: 0 0px 0 40px !important; 
+    
+    color: #333 !important;
+    font-family: 'Poppins', sans-serif !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
