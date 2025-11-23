@@ -51,8 +51,52 @@ class Scraper:
     def url(self, url):
         if not requests.get(url).ok:
             raise ValueError("Failed requesting from url")
-        
         self._url = url
+            
+
+    @property
+    def n_cats(self):
+        return self._n_cats
+    
+    @n_cats.setter
+    def n_cats(self, n_cats):
+        if not n_cats or type(n_cats) != int or n_cats <= 0:
+            raise ValueError("n_cats must be defined")
+        self._n_cats = n_cats
+
+
+    @property
+    def n_subcats(self):
+        return self._n_subcats
+    
+    @n_subcats.setter
+    def n_subcats(self, n_subcats):
+        if not n_subcats or type(n_subcats) != int or n_subcats <= 0:
+            raise ValueError("n_subcats must be defined")
+        self._n_subcats = n_subcats
+
+
+    @property
+    def n_layers(self):
+        return self._n_layers
+    
+    @n_layers.setter
+    def n_layers(self, n_layers):
+        if not n_layers or type(n_layers) != int or n_layers <= 0:
+            raise ValueError("n_layers must be defined")
+        self._n_layers = n_layers
+
+
+    @property
+    def n_products(self):
+        return self._n_products
+    
+    @n_products.setter
+    def n_products(self, n_products):
+        if not n_products or type(n_products) != int or n_products <= 0:
+            raise ValueError("n_products must be defined")
+        self._n_products = n_products
+
             
         
     def parse_categories(self, parse_pages=True):
