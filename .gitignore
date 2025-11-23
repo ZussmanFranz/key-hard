@@ -391,3 +391,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Uv stuff
+uv.lock
+pyproject.toml
+.python-version
