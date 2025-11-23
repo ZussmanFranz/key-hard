@@ -13,8 +13,34 @@ class Scraper:
     CATEGORIES_PATH = "webapi/front/pl_PL/categories/tree"
     CATEGORY_PAGE_SUFFIX = "pl/c/{category_name}/{category_id}/{page_number}"
 
-    def __init__(self, url):
+    def __init__(self, url, crop=False, n_cats=None, n_subcats=None, n_layers=None, n_products=None):
+        '''
+        Initializes a parser object to collect data 
+        about categories tree and each product in them from the url.
+
+        Parameters:
+            url         web shop to parse from (required attibute),
+
+            crop        optional flag to crop categories tree for
+                        specific number of categories and products only 
+                            (if True, all the attributes below are required),
+            
+            n_cats      number of top-level categories
+            n_subcats   number of subcategories for each layer
+            n_layers    number of subcategores layers, for example:
+                            1 == "only top level has sub-categories"
+                            2 == "each subcategory of top level also has subcategories"
+            n_products  maximum number of products to parse (TODO: calculate distribution between subcategories)
+        '''
+
         self.url = url
+
+        if crop:
+            self.crop = crop
+            self.n_cats = n_cats
+            self.n_subcats = n_subcats
+            self.n_layers = n_layers
+            self.n_products = n_products
 
     
     @property
@@ -53,6 +79,20 @@ class Scraper:
                 logger.info(f"Count pages for {cat['name']} (id: {cat['id']})")
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
+
+    def crop_categories_tree(self):
+        '''
+        Returns a cropped tree, but does not assign it automatically
+
+        Crops categoris tree 
+        so it fits requrements 
+        using class parameters:
+            n_cats,
+            n_subcats,
+            n_layers,
+            n_products
+        '''
+
 
     def parse_basic_product_info(self, product):
         '''
