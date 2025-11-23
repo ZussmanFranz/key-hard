@@ -307,7 +307,6 @@ class Scraper:
                 # If has no children, we parse products for category
                 logger.info(f"Parsing products for {cat['name']} (id: {cat['id']})")
 
-                cat["number_of_pages"] = self.parse_number_of_pages(cat)
                 products = self.parse_all_products_from_category(cat, cat["number_of_pages"])
 
     def parse_products_from_category(self, category):
