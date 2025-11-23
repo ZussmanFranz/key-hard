@@ -119,8 +119,7 @@ class Scraper:
             product_info['price']["additional_info"] = info_tag.get_text(strip=True)
         return product_info, product_id
 
-            
-    # TODO: delivery, stock status
+        
     def parse_detailed_product_info(self, product_info):
         '''
         Fills in detailed product information into the product_info dictionary.
@@ -136,6 +135,7 @@ class Scraper:
             "omnibus": "",
         },
         "tags": [],
+        "shipping_info": {},
         '''
         if not product_info.get("product_link"):
             logger.warning("No product link found for detailed info parsing.")
@@ -151,6 +151,27 @@ class Scraper:
             return
             
         resp_bs = BeautifulSoup(resp.content, "html.parser")
+
+        price = product_info['price'].get("current", "").replace(' zł', '').replace(',', '.')
+        stock_input = resp_bs.find('input', {'name': 'stock_id'})
+        if not stock_input:
+            logger.error("No stock_id input found on product details page.")
+            return
+        
+        stock_id = stock_input.get('value')
+        api_url = f"{self.url}/product/getstockcostinfo/stock/{stock_id}/price/{price}"
+
+        try:
+            resp = requests.get(
+                api_url
+            )
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            logger.error(f"Failed to fetch stock and cost info from {api_url}: {e}")
+            return
+
+        stock_data = resp.json()
+        product_info["shipping_info"] = stock_data
 
         product_box = resp_bs.find("div", id="box_productfull")
         
