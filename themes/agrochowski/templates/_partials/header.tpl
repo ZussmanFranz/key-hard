@@ -1,26 +1,5 @@
 {**
- * Copyright since 2007 PrestaShop SA and Contributors
- * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
- * that is bundled with this package in the file LICENSE.md.
- * It is also available through the world-wide-web at this URL:
- * https://opensource.org/licenses/AFL-3.0
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to https://devdocs.prestashop.com/ for more information.
- *
- * @author    PrestaShop SA and Contributors <contact@prestashop.com>
- * @copyright Since 2007 PrestaShop SA and Contributors
- * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
+ * Agrochowski Theme Header - Clean Rebuild
  *}
 {block name='header_banner'}
   <div class="header-banner">
@@ -29,59 +8,137 @@
 {/block}
 
 {block name='header_nav'}
-  <nav class="header-nav">
+  <div class="custom-topbar">
     <div class="container">
-      <div class="row">
-        <div class="hidden-sm-down">
-          <div class="col-md-5 col-xs-12">
-            {hook h='displayNav1'}
-          </div>
-          <div class="col-md-7 right-nav">
-              {hook h='displayNav2'}
-          </div>
+      <div class="topbar-flex">
+        
+        {* ЛЕВАЯ ЧАСТЬ: Текст *}
+        <div class="topbar-left">
+           Bezpieczne pakowanie | 30 dni na zwrot | Darmowa wysyłka od 200 zł
         </div>
-        <div class="hidden-md-up text-sm-center mobile">
-          <div class="float-xs-left" id="menu-icon">
-            <i class="material-icons d-inline">&#xE5D2;</i>
-          </div>
-          <div class="float-xs-right" id="_mobile_cart"></div>
-          <div class="float-xs-right" id="_mobile_user_info"></div>
-          <div class="top-logo" id="_mobile_logo"></div>
-          <div class="clearfix"></div>
+        
+        {* ПРАВАЯ ЧАСТЬ: Иконки + Телефон + Часы *}
+        <div class="topbar-right">
+            <!-- Соцсети -->
+            <div class="social-icons">
+                <a href="#" class="fb"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="#" class="insta"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" class="tiktok"><i class="fa-brands fa-tiktok"></i></a>
+            </div>
+            
+            <!-- Телефон -->
+            <div class="phone-block">
+                <i class="fa-solid fa-phone"></i>
+                <a href="tel:228702123">22 870 21 23</a>
+            </div>
+            
+            <!-- Часы работы -->
+            <div class="hours-block">
+                (Pon.-Pt.: 9:00–19:00, Sob.: 9:00–15:00)
+            </div>
         </div>
-      </div>
-    </div>
-  </nav>
-{/block}
 
-{block name='header_top'}
-  <div class="header-top">
-    <div class="container">
-       <div class="row">
-        <div class="col-md-2 hidden-sm-down" id="_desktop_logo">
-          {if $shop.logo_details}
-            {if $page.page_name == 'index'}
-              <h1>
-                {renderLogo}
-              </h1>
-            {else}
-              {renderLogo}
-            {/if}
-          {/if}
-        </div>
-        <div class="header-top-right col-md-10 col-sm-12 position-static">
-          {hook h='displayTop'}
-        </div>
-      </div>
-      <div id="mobile_top_menu_wrapper" class="row hidden-md-up" style="display:none;">
-        <div class="js-top-menu mobile" id="_mobile_top_menu"></div>
-        <div class="js-top-menu-bottom">
-          <div id="_mobile_currency_selector"></div>
-          <div id="_mobile_language_selector"></div>
-          <div id="_mobile_contact_link"></div>
-        </div>
       </div>
     </div>
   </div>
-  {hook h='displayNavFullWidth'}
+{/block}
+
+{block name='header_top'}
+  <div class="header-row">
+      <div class="container">
+           
+           {* === ЕДИНЫЙ БЛОК: ЛОГО + ПОИСК + КНОПКИ === *}
+           <div class="header-content-wrapper">
+            
+                {* 1. ЛОГОТИП *}
+                <div class="logo-block" id="_desktop_logo">
+                  <a href="{$urls.base_url}" title="{$shop.name}">
+                    <img class="logo img-responsive" src="{$shop.logo_details.src}" alt="{$shop.name}">
+                  </a>
+                </div>
+
+                {* 2. ПОИСК *}
+                <div class="search-block">
+                    <form method="get" action="{$urls.pages.search}">
+                        <input type="hidden" name="controller" value="search">
+                        <div class="search-input-group">
+                            <input type="text" name="s" class="search-input" placeholder="Szukaj autora, tytułu lub kategorii" aria-label="Szukaj">
+                            <button type="submit" class="search-btn">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                {* 3. КНОПКИ (Аккаунт + Корзина) *}
+                <div class="buttons-block">
+                    <div class="combined-actions">
+                        {* Кнопка Аккаунта *}
+                        <a href="{$urls.pages.my_account}" class="user-link" rel="nofollow">
+                            <i class="fa-regular fa-user"></i>
+                            <span>Moje konto</span>
+                        </a>
+                        
+                        {* Кнопка Корзины *}
+                        <a href="{$urls.pages.cart}" class="cart-link" rel="nofollow">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <span>Koszyk ({if isset($cart.products_count)}{$cart.products_count}{else}0{/if})</span>
+                        </a>
+
+                        {* Выпадающее окно *}
+                        <div class="basket-dropdown">
+                            <div class="basket-summary-row">
+                                <a href="{$urls.pages.order}" class="btn-checkout-brown">Do Kasy</a>
+                                <span class="basket-price-info">
+                                    <span class="label">suma:</span>
+                                    <strong class="price">
+                                        {if isset($cart.totals.total.value)}
+                                            {$cart.totals.total.value}
+                                        {else}
+                                            0,00 zł
+                                        {/if}
+                                    </strong>
+                                </span>
+                            </div>
+                            <div class="free-shipping-info">
+                                <i class="fa-solid fa-truck-fast"></i>
+                                <span>Darmowa dostawa już od 200,00 zł.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>   
+
+          </div> {* Конец header-content-wrapper *}
+      </div>
+      
+      {* НИЖНИЙ ЭТАЖ: МЕНЮ *}
+      <div class="header-menu-row">
+        <div class="container">
+            <nav class="innermenu">
+                <ul class="menu-list">
+                    <li class="parent">
+                        <a href="#" class="mainlevel">Książki <i class="fa-solid fa-chevron-down"></i></a>
+                        <div class="submenu">
+                            <ul>
+                                <li><a href="#">Autografy</a></li>
+                                <li><a href="#">Literatura piękna</a></li>
+                                <li><a href="#">Biografie, wspomnienia</a></li>
+                                <li><a href="#">Dla dzieci</a></li>
+                                <li><a href="#">Fantasy, SF</a></li>
+                                <li><a href="#">Kryminały</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li class="parent"><a href="#" class="mainlevel">Muzyka <i class="fa-solid fa-chevron-down"></i></a></li>
+                    <li class="parent"><a href="#" class="mainlevel">Komiksy <i class="fa-solid fa-chevron-down"></i></a></li>
+                    <li class="parent"><a href="#" class="mainlevel">Inne <i class="fa-solid fa-chevron-down"></i></a></li>
+                    <li class="parent"><a href="#" class="mainlevel">Polecane <i class="fa-solid fa-chevron-down"></i></a></li>
+                    <li><a href="#" class="mainlevel">Nowości</a></li>
+                    <li><a href="#" class="mainlevel">Promocje</a></li>
+                    <li><a href="#" class="mainlevel" style="color: #333;">Skup</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+  </div> 
 {/block}
