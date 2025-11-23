@@ -104,7 +104,7 @@ class Scraper:
         return product_info
             
 
-    # TODO: Parse tags
+    # TODO: delivery, stock status, reviews, ratings
     def get_detailed_product_info(self, product_info):
         '''
         Fills in detailed product information into the product_info dictionary.
@@ -118,7 +118,8 @@ class Scraper:
         "price": {
             "regular": "",
             "omnibus": "",
-        }
+        },
+        "tags": [],
         '''
         if not product_info["product_link"]:
             return None
@@ -134,14 +135,14 @@ class Scraper:
             basket_div = product_box.find("div", class_="basket")
             
             if basket_div:
-                # 1. Regular Price
+                # Regular Price
                 regular_price_p = basket_div.find("p", class_="price__regular")
                 if regular_price_p:
                     inactive_price = regular_price_p.find("del", class_="price__inactive")
                     if inactive_price:
                         product_info['price']["regular"] = inactive_price.get_text(strip=True)
 
-                # 2. Omnibus / Lowest price 30 days
+                # Omnibus / Lowest price 30 days
                 omnibus_container = basket_div.find("div", class_="js__omnibus-price-container")
                 if omnibus_container:
                     omnibus_price = omnibus_container.find("strong", class_="js__omnibus-price-gross")
@@ -150,20 +151,20 @@ class Scraper:
 
         details_div = resp_bs.find("div", class_="maininfo")
 
-        # 3. High Res Image
+        # High Res Image
         if details_div:
             high_res_anchor = details_div.find("a", class_="js__gallery-anchor-image")
             if high_res_anchor:
                 product_info["thumbnail_high_res"] = high_res_anchor.get("href", "")
 
-        # 4. Display Code
+        # Display Code
         code_div = resp_bs.find("div", class_="row code")
         if code_div:
             span_tag = code_div.find("span")
             if span_tag:
                 product_info["display_code"] = span_tag.get_text(strip=True)
 
-        # 5. Parse Attributes
+        # Parse Attributes
         # Normalize keys to avoid duplicates (e.g., "Rok wydania" vs "rok_wydania")
         def normalize_key(k):
             return k.lower().replace(" ", "_").replace(":", "")
@@ -204,13 +205,20 @@ class Scraper:
                     if clean_key and clean_key not in product_info["attributes"]:
                         product_info["attributes"][clean_key] = val
 
-        # 4. Parse Description (with newlines)
+        # Parse Description (with newlines)
         desc_box = resp_bs.find("div", id="box_description")
         if desc_box:
             desc_content = desc_box.find("div", itemprop="description")
             if desc_content:
                 product_info["description"] = desc_content.get_text(separator="\n", strip=True)
-
+        # Tags
+        tags = []
+        tags_ul = resp_bs.find("ul", class_="tags")
+        if tags_ul:
+            for tag_li in tags_ul.find_all("li"):
+                tags.append(tag_li.get_text(strip=True))
+        if tags:
+            product_info["tags"] = tags
     def get_product_details(self, product):
         product_info = self.get_basic_product_info(product)
         if not product_info:
