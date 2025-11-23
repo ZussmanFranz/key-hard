@@ -54,7 +54,7 @@ class Scraper:
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
 
-    def get_basic_product_info(self, product):
+    def parse_basic_product_info(self, product):
         '''
         Extracts basic product information from the product element.
         Return: {
@@ -70,42 +70,58 @@ class Scraper:
         '''
         product_id = product.get("data-product-id", "")
         if not product_id:
-            return None
+            logger.warning("Product without product id found, skipping...")
+            return None, None
         if not str(product_id).isdigit():
-            return None
+            logger.warning("Product with invalid product id found, skipping...")
+            return None, None
         product_id = int(str(product_id))
         product_info = {"price": {}}
         name_tag = product.find("a", class_="prodname")
         if name_tag:
             product_info["product_name"] = name_tag.get_text(strip=True)
             product_info["product_link"] = name_tag["href"]
+        else:
+            logger.warning(f"Product with id {product_id} has no name tag, skipping...")
 
         manufacturer_tag = product.find("div", class_="manufacturer")
         if manufacturer_tag:
             brand_tag = manufacturer_tag.find("a", class_="brand")
             if brand_tag:
                 product_info["product_author"] = brand_tag.get_text(strip=True)
+            else:
+                logger.warning(f"Product with id {product_id} has no brand tag.")
+        else:
+            logger.warning(f"Product with id {product_id} has no manufacturer tag.")
 
         price_tag = product.find("div", class_="price")
         if price_tag:
             em_tag = price_tag.find("em")
             if em_tag:
                 product_info['price']["current"] = em_tag.get_text(strip=True)
+            else:
+                logger.warning(f"Product with id {product_id} has no price em tag.")
+        else:
+            logger.warning(f"Product with id {product_id} has no price tag.")
 
         prod_image_link = product.find("a", class_="prodimage")
         if prod_image_link:
             img_tag = prod_image_link.find("img")
             if img_tag:
                 product_info["thumbnail"] = img_tag.get("data-src", "")
+            else:
+                logger.warning(f"Product with id {product_id} has no image tag.")
+        else:
+            logger.warning(f"Product with id {product_id} has no prodimage tag.")
 
         info_tag = product.find("div", class_="price__additional-info")
         if info_tag:
             product_info['price']["additional_info"] = info_tag.get_text(strip=True)
-        return product_info
-            
+        return product_info, product_id
 
-    # TODO: delivery, stock status, reviews, ratings
-    def get_detailed_product_info(self, product_info):
+            
+    # TODO: delivery, stock status
+    def parse_detailed_product_info(self, product_info):
         '''
         Fills in detailed product information into the product_info dictionary.
         Modifies product_info in place.
@@ -121,12 +137,19 @@ class Scraper:
         },
         "tags": [],
         '''
-        if not product_info["product_link"]:
-            return None
+        if not product_info.get("product_link"):
+            logger.warning("No product link found for detailed info parsing.")
+            return
         
         product_details_url = self.url + product_info["product_link"]
 
-        resp = requests.get(product_details_url)
+        try:
+            resp = requests.get(product_details_url)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            logger.error(f"Failed to fetch product details from {product_details_url}: {e}")
+            return
+            
         resp_bs = BeautifulSoup(resp.content, "html.parser")
 
         product_box = resp_bs.find("div", id="box_productfull")
@@ -156,6 +179,10 @@ class Scraper:
             high_res_anchor = details_div.find("a", class_="js__gallery-anchor-image")
             if high_res_anchor:
                 product_info["thumbnail_high_res"] = high_res_anchor.get("href", "")
+            else:
+                logger.warning("No high res image anchor found.")
+        else:
+            logger.warning("No maininfo div found.")
 
         # Display Code
         code_div = resp_bs.find("div", class_="row code")
@@ -219,15 +246,16 @@ class Scraper:
                 tags.append(tag_li.get_text(strip=True))
         if tags:
             product_info["tags"] = tags
-    def get_product_details(self, product):
-        product_info = self.get_basic_product_info(product)
+            
+    def parse_product_details(self, product):
+        product_info, product_id = self.parse_basic_product_info(product)
         if not product_info:
-            return None
+            return None, None
         logger.info(f"Fetching detailed info for product: {product_info.get('product_name', 'Unknown')}")
-        self.get_detailed_product_info(product_info)
-        return product_info
+        self.parse_detailed_product_info(product_info)
+        return product_info, product_id
 
-    def get_all_products_from_category(self, category, max_pages: int):
+    def parse_all_products_from_category(self, category, max_pages: int):
         resp = requests.get(
             self.url +
             self.CATEGORY_PAGE_SUFFIX.format(
@@ -258,10 +286,9 @@ class Scraper:
             logger.info(f"Fetched page {page} for category {category['name']}")
             
         products_json = {}
-        for k, product in enumerate(products):
-            product_details = self.get_product_details(product)
+        for _, product in enumerate(products):
+            product_details, product_id = self.parse_product_details(product)
             if product_details:
-                product_id = product.get("data-product-id", "")
                 products_json[product_id] = product_details
 
         return products_json
@@ -281,7 +308,7 @@ class Scraper:
                 logger.info(f"Parsing products for {cat['name']} (id: {cat['id']})")
 
                 cat["number_of_pages"] = self.parse_number_of_pages(cat)
-                products = self.get_all_products_from_category(cat, cat["number_of_pages"])
+                products = self.parse_all_products_from_category(cat, cat["number_of_pages"])
 
     def parse_products_from_category(self, category):
         max_page = category["number_of_pages"]
