@@ -1,56 +1,101 @@
-{**
- * Copyright since 2007 PrestaShop SA and Contributors
- * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Academic Free License 3.0 (AFL-3.0)
- * that is bundled with this package in the file LICENSE.md.
- * It is also available through the world-wide-web at this URL:
- * https://opensource.org/licenses/AFL-3.0
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to https://devdocs.prestashop.com/ for more information.
- *
- * @author    PrestaShop SA and Contributors <contact@prestashop.com>
- * @copyright Since 2007 PrestaShop SA and Contributors
- * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
- *}
-<div class="container">
-  <div class="row">
-    {block name='hook_footer_before'}
-      {hook h='displayFooterBefore'}
-    {/block}
+{* GÓRNA SEKCJA: NEWSLETTER *}
+<div class="footer-newsletter-wrapper">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-12">
+        {block name='hook_footer_before'}
+          {hook h='displayFooterBefore'}
+        {/block}
+      </div>
+    </div>
   </div>
 </div>
+
+{* GŁÓWNA SEKCJA STOPKI *}
 <div class="footer-container">
   <div class="container">
     <div class="row">
-      {block name='hook_footer'}
-        {hook h='displayFooter'}
-      {/block}
+      
+      {* KOLUMNA 1: LOGO I NAGRODA *}
+      <div class="col-md-3 footer-col-1 text-center text-md-left">
+        {* Tu wstawiamy diva pod obrazek w CSS *}
+        <div class="footer-logo-bg"></div> 
+        
+        <div class="footer-award-text">
+            <p><strong>I Nagroda w plebiscycie:</strong></p>
+            <img src="/themes/agrochowski/assets/img/award_2.png" alt="Award"  loading="lazy" width="170px" >
+        </div>
+      </div>
+
+      {* KOLUMNA 2: DANE KONTAKTOWE *}
+      <div class="col-md-3 footer-col-2">
+        <h3 class="h3 footer-heading">Kontakt</h3>
+        <p class="contact-details">
+            <strong style="color: black;">Sklep stacjonarny</strong><br>
+            ul. Kickiego 12<br>
+            04-397 Warszawa
+        </p>
+        
+        <p class="contact-hours">
+            Pon. - Pt.: 9:00 - 19:00<br>
+            Sob.: 9:00 - 15:00
+        </p>
+        
+        <p class="contact-comm">
+            <a href="mailto:marek@agrochowski.pl">marek@agrochowski.pl</a><br>
+            22 870 21 23<br>
+            510 445 596
+        </p>
+        
+        {* Ikony social media jako divy do stylowania w CSS *}
+        <div class="social-icons-container">
+           <a href="#" class="social-link" aria-label="Facebook"><div class="social-icon-fb"></div></a>
+           <a href="#" class="social-link" aria-label="Instagram"><div class="social-icon-insta"></div></a>
+           <a href="#" class="social-link" aria-label="TikTok"><div class="social-icon-tiktok"></div></a>
+        </div>
+      </div>
+
+      {* KOLUMNA 3 i 4: LINKI (Zaciągane z modułu Link Widget) *}
+      {* Obejmujemy to w col-md-6, aby link widget podzielił się wewnątrz na dwie 'trójki' *}
+      <div class="col-md-6 footer-links-wrapper">
+        <div class="row">
+          {block name='hook_footer'}
+            {hook h='displayFooter'}
+          {/block}
+        </div>
+      </div>
+      
     </div>
-    <div class="row">
-      {block name='hook_footer_after'}
-        {hook h='displayFooterAfter'}
-      {/block}
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <p class="text-sm-center">
+    
+    
+  </div>
+</div>
+
+{* DOLNA BELKA: PŁATNOŚCI I COPYRIGHT *}
+<div class="footer-bottom-wrapper">
+  <div class="container" style="padding:0;">
+    
+
+		<div class="payment-icons-container">
+            <img src="/themes/agrochowski/assets/img/inpost_footer.svg" alt="InPost"  loading="lazy" >
+            <img src="/themes/agrochowski/assets/img/poczta_footer.svg" alt="PocztaPolska"  loading="lazy">
+			<img src="/themes/agrochowski/assets/img/blik_footer.svg" alt="Blik"  loading="lazy">
+            <img src="/themes/agrochowski/assets/img/applepay_footer.svg" alt="ApplePay"  loading="lazy">
+            <img src="/themes/agrochowski/assets/img/googlepay_footer.svg" alt="GooglePay"  loading="lazy">
+            <img src="/themes/agrochowski/assets/img/paypo_footer.svg" alt="PayPo"  loading="lazy">
+			<img src="/themes/agrochowski/assets/img/visa_footer.svg" alt="Visa"  loading="lazy">
+            <img src="/themes/agrochowski/assets/img/m_card_footer.svg" alt="Mastercard"  loading="lazy">
+
+			<p class="copyright-text">
           {block name='copyright_link'}
-            <a href="https://www.prestashop.com" target="_blank" rel="noopener noreferrer nofollow">
-              {l s='%copyright% %year% - Ecommerce software by %prestashop%' sprintf=['%prestashop%' => 'PrestaShop™', '%year%' => 'Y'|date, '%copyright%' => '©'] d='Shop.Theme.Global'}
-            </a>
+
           {/block}
         </p>
-      </div>
-    </div>
+        </div>
+		
+			<p class="copyright-text">
+				Sklep internetowy Shoper Premium zrealizowany przez Digispot.pl
+			</p>
+
   </div>
 </div>
