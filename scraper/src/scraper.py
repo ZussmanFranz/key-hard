@@ -38,6 +38,7 @@ class Scraper:
 
         # List of references for each leaf category
         self.leaf_cats = []
+        self.products_per_page = None
 
         if crop:
             self.crop = crop
@@ -118,6 +119,9 @@ class Scraper:
         if parse_pages:
             self.parse_number_of_pages_rec(self.tree)
 
+        if self.crop:
+            self.crop_pages()
+
     def parse_number_of_pages_rec(self, categories):
         for cat in categories:
             sub_cats = cat["children"]
@@ -143,8 +147,7 @@ class Scraper:
         using class parameters:
             n_cats,
             n_subcats,
-            n_layers,
-            n_products
+            n_layers
         '''
         
         logger.info("--- Started cropping categories tree ---")
@@ -164,10 +167,27 @@ class Scraper:
                     cat['children'] = cat['children'][:self.n_subcats]
                     crop_subcategories(cat['children'], layers_left - 1)
 
-        crop_subcategories(cropped_tree, self.n_layers)
-        
+        crop_subcategories(cropped_tree, self.n_layers)       
+
         logger.info("--- Categories tree has been cropped successfully! ---")
         return cropped_tree
+    
+    def crop_pages(self):
+        '''
+        Crops page numbers for each leaf category
+        based on n_products parameter
+        '''
+
+        logger.info("--- Started cropping numbers of pages ---")
+
+        # Sort leaf categories by number of pages in the ascending order
+        self.leaf_cats.sort(key=lambda x: x['number_of_pages'])
+
+        print(self.leaf_cats)
+        
+        # Iterate through them and try to achieve perfect pages distribution
+
+        logger.info("--- Numbers of pages have been cropped successfully! ---")
 
 
         
@@ -492,7 +512,15 @@ class Scraper:
         # (?r) flag searches from the end of string
         max_page = regex.search(r"(?r)(\d+)", paginator.text).group()
 
+        # Parse number of products per page once for the whole website, 
+        # but the page must be full
+        if (not self.products_per_page) and (int(max_page) > 1):
+            self.products_per_page = self.parse_products_per_page(soup)
+
         return int(max_page)
+    
+    def parse_products_per_page(self, soup):
+        return len(soup.find_all("div", class_="product"))
 
 
     def clean_for_url(self, cat_name):
