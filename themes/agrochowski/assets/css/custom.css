@@ -1,1 +1,210 @@
-body { background: green !important; }
+.footer-newsletter-wrapper {
+    background-color: #fdfbf0;
+    padding: 40px 0;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.footer-newsletter-wrapper .container {
+    max-width: 100%;
+    background-color: #ffffff; 
+    width: 100%;
+    margin: 0;
+}
+
+.block_newsletter {
+    text-align: center;
+    margin: 0 auto;
+    float: none !important;
+}
+
+.block_newsletter .col-xs-12 {
+    float: none !important;
+}
+
+#block-newsletter-label {
+    font-size: 36px !important;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 5px;
+    padding: 10px 0 !important;
+    text-align: center;
+}
+
+.newsletter-slogan {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+.newsletter-slogan strong {
+    color: #a05a2c; 
+    font-weight: 700;
+    font-size: x-large;
+}
+
+.block_newsletter form .form-group-centered {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    max-width: 700px;
+    margin: 0 auto 15px auto;
+}
+
+.block_newsletter .input-wrapper {
+    flex-grow: 1;
+    margin-right: 0;
+}
+
+.block_newsletter input[name="email"] {
+    background-color: #fcf8e8; 
+    border: none;
+    height: 45px;
+    width: 100%;
+    padding: 10px 15px;
+    color: #666;
+    outline: none;
+}
+
+.block_newsletter input[name="email"]::placeholder {
+    color: #999;
+    font-style: normal;
+}
+
+.block_newsletter input[name="submitNewsletter"].btn {
+    background-color: #5d3618; 
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    height: 45px;
+    padding: 0 30px;
+    text-transform: none;
+    font-weight: normal;
+    font-size: 16px;
+    margin-left: 0 !important;
+    float: none;
+}
+
+.block_newsletter input[name="submitNewsletter"]:hover {
+    background-color: #4a2b13; 
+}
+
+.block_newsletter .newsletter-conditions, 
+.block_newsletter p {
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    color: #1e1e1e;
+    margin-top: 5px;
+}
+
+@media (max-width: 576px) {
+    .block_newsletter form .form-group-centered {
+        flex-direction: column;
+    }
+    .block_newsletter input[name="submitNewsletter"].btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+.footer-container {
+    background-color: #ffffff;
+    padding: 37.5px 0 40px;
+    color: #333;
+}
+
+.footer-container h3, 
+.footer-container .h3,
+.footer-heading,
+.footer-col-1 strong,
+.footer-col-2 strong {
+    color: #5d3618;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    text-transform: none;
+}
+
+.footer-container a {
+    color: #333;
+    transition: color 0.2s;
+}
+
+.footer-container a:hover {
+    color: #d5ad6a;
+    text-decoration: none;
+}
+
+.footer-logo-bg {
+    background-image: url('footer_logo.png'); 
+    background-repeat: no-repeat;
+    background-position: center left;
+    background-size: contain;
+    width: 100%;
+    height: 150px;
+    margin-bottom: 20px;
+    display: block;
+}
+
+@media (max-width: 767px) {
+    .footer-logo-bg {
+        background-position: center center;
+    }
+}
+
+.social-icons-container {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.social-link div {
+    width: 24px;
+    height: 24px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.social-icon-fb { background-image: url('Icon_facebook.svg'); }
+.social-icon-insta { background-image: url('Icon_instagram.svg'); }
+.social-icon-tiktok { background-image: url('tiktok.svg'); }
+
+.payment-icons-container {
+    display: flex;
+    column-gap: 25px;
+    row-gap: 10px;
+    flex-wrap: wrap;
+}
+
+.footer-bottom-wrapper {
+    background-color: #fdfbf0;
+    border-top: 1px solid #eaeaea;
+    padding: 16px 0;
+}
+
+.copyright-text {
+    font-size: 15px;
+    color: #1e1e1e;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+.footer-bottom-wrapper .container {
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .footer-links-wrapper .row > div {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+.footer-links-wrapper .links > .row {
+    display: flex;
+}
