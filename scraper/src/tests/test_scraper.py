@@ -6,7 +6,7 @@ URL = "https://agrochowski.pl/"
 
 
 def test_save_load():
-    OUTPUT = "tests/no_pages_results.json"
+    OUTPUT = "scraper/src/tests/no_pages_results.json"
 
     scrap = Scraper(URL)
 
