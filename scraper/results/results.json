@@ -7,13 +7,13 @@
                 "id": 157,
                 "name": "Autografy",
                 "children": [],
-                "number_of_pages": 22
+                "number_of_pages": 21
             },
             {
                 "id": 414,
                 "name": "Literatura piękna",
                 "children": [],
-                "number_of_pages": 1096
+                "number_of_pages": 6
             }
         ]
     },
@@ -25,13 +25,13 @@
                 "id": 415,
                 "name": "Płyty CD",
                 "children": [],
-                "number_of_pages": 326
+                "number_of_pages": 6
             },
             {
                 "id": 416,
                 "name": "Płyty winylowe",
                 "children": [],
-                "number_of_pages": 242
+                "number_of_pages": 6
             }
         ]
     },
@@ -61,7 +61,7 @@
                 "id": 335,
                 "name": "Audiobooki, eBooki",
                 "children": [],
-                "number_of_pages": 8
+                "number_of_pages": 7
             },
             {
                 "id": 394,

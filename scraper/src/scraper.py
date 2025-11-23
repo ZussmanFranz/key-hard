@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import logging_config
 import logging
 import copy
+from math import ceil
 
 logging_config.setup_logging()
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ class Scraper:
             n_layers    number of subcategores layers, for example:
                             1 == "only top level has sub-categories"
                             2 == "each subcategory of top level also has subcategories"
-            n_products  maximum number of products to parse (TODO: calculate distribution between subcategories)
+            n_products  maximum number of products to parse
         '''
 
         self.url = url
@@ -179,13 +180,45 @@ class Scraper:
         '''
 
         logger.info("--- Started cropping numbers of pages ---")
+        logger.info(f"Number of products per page: {self.products_per_page}")
+
 
         # Sort leaf categories by number of pages in the ascending order
         self.leaf_cats.sort(key=lambda x: x['number_of_pages'])
-
-        print(self.leaf_cats)
         
+        # In perfect world each category should contain exactly that much products
+        optimal_products_per_cat = self.n_products / len(self.leaf_cats)
+        
+        # Round up to be sure that products requirement will be satisfied
+        optimal_pages_per_cat = ceil(optimal_products_per_cat/self.products_per_page)
+        
+        # If there is not enough pages in category, the debt is increased.
+        pages_debt = 0
+
+        # For debug purpouse
+        products_estimated = 0
+
         # Iterate through them and try to achieve perfect pages distribution
+        for cat in self.leaf_cats:
+            # Substract one to be sure that every page is full
+            pages = cat['number_of_pages'] - 1
+
+            if pages > optimal_pages_per_cat:
+                pages_gain = 0
+
+                if pages_debt:
+                    # Gain cannot be higher than debt
+                    pages_gain = min(pages - optimal_pages_per_cat, pages_debt)
+                    pages_debt -= pages_gain
+
+                cat['number_of_pages'] = optimal_pages_per_cat + pages_gain
+            else:
+                # There is not enough pages, so the debt is increased and number of pages is unchanged
+                pages_debt += optimal_pages_per_cat - pages
+
+            products_estimated += cat['number_of_pages'] * self.products_per_page
+
+        logger.info(f"Finishing cropping pages. Estimated number of products ~{products_estimated}")
 
         logger.info("--- Numbers of pages have been cropped successfully! ---")
 
