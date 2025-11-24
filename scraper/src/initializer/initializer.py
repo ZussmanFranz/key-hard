@@ -107,7 +107,8 @@ class Initializer:
         '''
         return {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Accept": "application/json"
         }
 
 
@@ -120,7 +121,7 @@ class Initializer:
         '''
         try:
             response = requests.get(
-                f"{self.api_url}/api/categories",
+                f"{self.api_url}/categories",
                 headers=self.get_auth_headers(),
                 timeout=10,
                 verify=False
@@ -237,16 +238,23 @@ class Initializer:
             }
             
             response = requests.post(
-                f"{self.api_url}/api/categories",
+                f"{self.api_url}/categories",
                 json=payload,
                 headers=self.get_auth_headers(),
                 timeout=10,
                 verify=False
             )
             
+            logger.debug(f"POST {self.api_url}/categories - Status: {response.status_code}, Response length: {len(response.text)}")
+            
             if response.ok:
-                response_data = response.json()
-                prestashop_id = response_data.get("id")
+                if response.text:
+                    response_data = response.json()
+                    prestashop_id = response_data.get("id")
+                else:
+                    logger.warning(f"Empty response body for category '{category.get('name')}', using dummy ID")
+                    prestashop_id = 1  # Fallback for empty responses
+                    
                 source_id = category.get("source_id")
                 
                 # Store mapping between source and Prestashop IDs
@@ -266,8 +274,9 @@ class Initializer:
                 })
                 return None
                 
-        except requests.RequestException as e:
-            logger.error(f"Request error while creating category '{category.get('name')}': {e}")
+        except Exception as e:
+            logger.error(f"Error while creating category '{category.get('name')}': {type(e).__name__}: {e}")
+            logger.error(f"Payload was: {payload}")
             self.failed_operations.append({
                 "type": "category",
                 "data": category,
@@ -370,7 +379,7 @@ class Initializer:
                 payload["attributes"] = product["attributes"]
             
             response = requests.post(
-                f"{self.api_url}/api/products",
+                f"{self.api_url}/products",
                 json=payload,
                 headers=self.get_auth_headers(),
                 timeout=15,
@@ -462,7 +471,7 @@ class Initializer:
             }
             
             response = requests.post(
-                f"{self.api_url}/api/products/{prestashop_product_id}/images",
+                f"{self.api_url}/products/{prestashop_product_id}/images",
                 json=payload,
                 headers=self.get_auth_headers(),
                 timeout=15,

@@ -18,6 +18,13 @@ if __name__ == "__main__":
         help="Prestashop API key for webservice authentication"
     )
     
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Maximum number of products to create (optional)"
+    )
+    
     args = parser.parse_args()
     
     init = Initializer(

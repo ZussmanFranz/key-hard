@@ -1,0 +1,466 @@
+{
+    "created_categories": 12,
+    "created_products": 0,
+    "failed_operations": 4,
+    "category_id_mappings": 0,
+    "category_ids": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+    ],
+    "product_ids": [],
+    "failures": [
+        {
+            "type": "product",
+            "data": {
+                "price": {
+                    "current": "36,00 zł",
+                    "additional_info": "",
+                    "regular": "",
+                    "omnibus": ""
+                },
+                "product_name": "Asteriks i Kleopatra",
+                "product_link": "/pl/p/Asteriks-i-Kleopatra/649036",
+                "product_author": "Goscinny René, Uderzo Albert",
+                "thumbnail": "/environment/cache/images/productGfx_725254_300_300/2025_07_05-20_04-Office-Lens-2.jpg?overlay=1",
+                "shipping_info": {
+                    "shippings": [
+                        {
+                            "id": "1",
+                            "engine": "personal",
+                            "name": "odbiór osobisty",
+                            "description": "odbiór w siedzibie firmy"
+                        },
+                        {
+                            "id": "15",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony",
+                            "description": ""
+                        },
+                        {
+                            "id": "13",
+                            "engine": "inpost",
+                            "name": "InPost Paczkomaty 24/7",
+                            "description": ""
+                        },
+                        {
+                            "id": "17",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony priorytet",
+                            "description": ""
+                        },
+                        {
+                            "id": "12",
+                            "engine": "inpost",
+                            "name": "InPost Kurier",
+                            "description": ""
+                        },
+                        {
+                            "id": "10",
+                            "engine": "pocztaPolska",
+                            "name": "Kurier Pocztex48",
+                            "description": ""
+                        }
+                    ],
+                    "shipping_countries": {
+                        "179": "Polska"
+                    },
+                    "shipping_country": 179,
+                    "country2shipping": {
+                        "179": [
+                            {
+                                "id": 1,
+                                "lowestCost": 0,
+                                "lowestCostWithCurrency": "0,00 zł"
+                            },
+                            {
+                                "id": 15,
+                                "lowestCost": 10.9,
+                                "lowestCostWithCurrency": "10,90 zł"
+                            },
+                            {
+                                "id": 13,
+                                "lowestCost": 13,
+                                "lowestCostWithCurrency": "13,00 zł"
+                            },
+                            {
+                                "id": 17,
+                                "lowestCost": 14,
+                                "lowestCostWithCurrency": "14,00 zł"
+                            },
+                            {
+                                "id": 12,
+                                "lowestCost": 16,
+                                "lowestCostWithCurrency": "16,00 zł"
+                            },
+                            {
+                                "id": 10,
+                                "lowestCost": 19,
+                                "lowestCostWithCurrency": "19,00 zł"
+                            }
+                        ]
+                    }
+                },
+                "thumbnail_high_res": "/environment/cache/images/productGfx_725254_0_0/2025_07_05-20_04-Office-Lens-2.jpg",
+                "display_code": "684735",
+                "attributes": {
+                    "rok_wydania": "2024",
+                    "wydawnictwo": "Egmont, Hachette",
+                    "liczba_stron": "96",
+                    "wysokość": "291",
+                    "oprawa": "twarda",
+                    "stan_książki": "5",
+                    "tłumacz": "Kilian Jarosław",
+                    "redakcja/opracowanie": "Gwiazda Katarzyna",
+                    "wydanie": "III",
+                    "seria_wydawnicza": "Klub Świata Komiksu - album 3206, Asteriks, tom 6",
+                    "fotografie": "kolorowe"
+                },
+                "id": 649036,
+                "category_id": 118
+            },
+            "error": "Category mapping not found"
+        },
+        {
+            "type": "product",
+            "data": {
+                "price": {
+                    "current": "80,00 zł",
+                    "additional_info": "",
+                    "regular": "",
+                    "omnibus": ""
+                },
+                "product_name": "Umpa-pa czerwonoskóry. Wydanie zbiorcze",
+                "product_link": "/pl/p/Umpa-pa-czerwonoskory.-Wydanie-zbiorcze-/640153",
+                "product_author": "Goscinny Rene",
+                "thumbnail": "/environment/cache/images/productGfx_714062_300_300/2025_05_28-13_04-Office-Lens.jpg?overlay=1",
+                "shipping_info": {
+                    "shippings": [
+                        {
+                            "id": "1",
+                            "engine": "personal",
+                            "name": "odbiór osobisty",
+                            "description": "odbiór w siedzibie firmy"
+                        },
+                        {
+                            "id": "15",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony",
+                            "description": ""
+                        },
+                        {
+                            "id": "13",
+                            "engine": "inpost",
+                            "name": "InPost Paczkomaty 24/7",
+                            "description": ""
+                        },
+                        {
+                            "id": "17",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony priorytet",
+                            "description": ""
+                        },
+                        {
+                            "id": "12",
+                            "engine": "inpost",
+                            "name": "InPost Kurier",
+                            "description": ""
+                        },
+                        {
+                            "id": "10",
+                            "engine": "pocztaPolska",
+                            "name": "Kurier Pocztex48",
+                            "description": ""
+                        }
+                    ],
+                    "shipping_countries": {
+                        "179": "Polska"
+                    },
+                    "shipping_country": 179,
+                    "country2shipping": {
+                        "179": [
+                            {
+                                "id": 1,
+                                "lowestCost": 0,
+                                "lowestCostWithCurrency": "0,00 zł"
+                            },
+                            {
+                                "id": 15,
+                                "lowestCost": 10.9,
+                                "lowestCostWithCurrency": "10,90 zł"
+                            },
+                            {
+                                "id": 13,
+                                "lowestCost": 13,
+                                "lowestCostWithCurrency": "13,00 zł"
+                            },
+                            {
+                                "id": 17,
+                                "lowestCost": 14,
+                                "lowestCostWithCurrency": "14,00 zł"
+                            },
+                            {
+                                "id": 12,
+                                "lowestCost": 16,
+                                "lowestCostWithCurrency": "16,00 zł"
+                            },
+                            {
+                                "id": 10,
+                                "lowestCost": 19,
+                                "lowestCostWithCurrency": "19,00 zł"
+                            }
+                        ]
+                    }
+                },
+                "thumbnail_high_res": "/environment/cache/images/productGfx_714062_0_0/2025_05_28-13_04-Office-Lens.jpg",
+                "display_code": "704522",
+                "attributes": {
+                    "rok_wydania": "2007",
+                    "wydawnictwo": "Egmont Polska",
+                    "liczba_stron": "176",
+                    "wysokość": "300",
+                    "oprawa": "twarda",
+                    "stan_książki": "4",
+                    "tłumacz": "Puszczewicz Marek",
+                    "ilustrator": "Uderzo Albert",
+                    "wydanie": "I",
+                    "seria_wydawnicza": "Klub Świata Komiksu Album 521",
+                    "fotografie": "kolorowe"
+                },
+                "description": "Minimalne wgniecenia i zarysowania oraz delikatne przybrudzenia",
+                "id": 640153,
+                "category_id": 118
+            },
+            "error": "Category mapping not found"
+        },
+        {
+            "type": "product",
+            "data": {
+                "price": {
+                    "current": "50,00 zł",
+                    "additional_info": "",
+                    "regular": "",
+                    "omnibus": ""
+                },
+                "product_name": "Asteriks. Tom 6 Asteriks i Kleopatra",
+                "product_link": "/pl/p/Asteriks.-Tom-6-Asteriks-i-Kleopatra-/618264",
+                "product_author": "Goscinny Rene",
+                "thumbnail": "/environment/cache/images/productGfx_683996_300_300/2025_02_17-14_30-Office-Lens-3.jpg?overlay=1",
+                "shipping_info": {
+                    "shippings": [
+                        {
+                            "id": "1",
+                            "engine": "personal",
+                            "name": "odbiór osobisty",
+                            "description": "odbiór w siedzibie firmy"
+                        },
+                        {
+                            "id": "15",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony",
+                            "description": ""
+                        },
+                        {
+                            "id": "13",
+                            "engine": "inpost",
+                            "name": "InPost Paczkomaty 24/7",
+                            "description": ""
+                        },
+                        {
+                            "id": "17",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony priorytet",
+                            "description": ""
+                        },
+                        {
+                            "id": "12",
+                            "engine": "inpost",
+                            "name": "InPost Kurier",
+                            "description": ""
+                        },
+                        {
+                            "id": "10",
+                            "engine": "pocztaPolska",
+                            "name": "Kurier Pocztex48",
+                            "description": ""
+                        }
+                    ],
+                    "shipping_countries": {
+                        "179": "Polska"
+                    },
+                    "shipping_country": 179,
+                    "country2shipping": {
+                        "179": [
+                            {
+                                "id": 1,
+                                "lowestCost": 0,
+                                "lowestCostWithCurrency": "0,00 zł"
+                            },
+                            {
+                                "id": 15,
+                                "lowestCost": 10.9,
+                                "lowestCostWithCurrency": "10,90 zł"
+                            },
+                            {
+                                "id": 13,
+                                "lowestCost": 13,
+                                "lowestCostWithCurrency": "13,00 zł"
+                            },
+                            {
+                                "id": 17,
+                                "lowestCost": 14,
+                                "lowestCostWithCurrency": "14,00 zł"
+                            },
+                            {
+                                "id": 12,
+                                "lowestCost": 16,
+                                "lowestCostWithCurrency": "16,00 zł"
+                            },
+                            {
+                                "id": 10,
+                                "lowestCost": 19,
+                                "lowestCostWithCurrency": "19,00 zł"
+                            }
+                        ]
+                    }
+                },
+                "thumbnail_high_res": "/environment/cache/images/productGfx_683996_0_0/2025_02_17-14_30-Office-Lens-3.jpg",
+                "display_code": "676936",
+                "attributes": {
+                    "rok_wydania": "1998",
+                    "wydawnictwo": "Egmont Polska",
+                    "liczba_stron": "56",
+                    "wysokość": "300",
+                    "oprawa": "twarda",
+                    "stan_książki": "4",
+                    "tłumacz": "Kilian Jarosław",
+                    "ilustrator": "Uderzo Albert",
+                    "fotografie": "kolorowe"
+                },
+                "description": "Minimalne wgniecenia oraz lekkie obtarcia i delikatne przybrudzenia\nPożółkłe karty",
+                "id": 618264,
+                "category_id": 118
+            },
+            "error": "Category mapping not found"
+        },
+        {
+            "type": "product",
+            "data": {
+                "price": {
+                    "current": "17,00 zł",
+                    "additional_info": "",
+                    "regular": "",
+                    "omnibus": ""
+                },
+                "product_name": "Mickey Mouse, 12/1991 wersja polska",
+                "product_link": "/pl/p/Mickey-Mouse%2C-121991-wersja-polska-/677923",
+                "product_author": "Disney Walt",
+                "thumbnail": "/environment/cache/images/productGfx_764486_300_300/2025_11_03-13_00-Office-Lens.jpg?overlay=1",
+                "shipping_info": {
+                    "shippings": [
+                        {
+                            "id": "1",
+                            "engine": "personal",
+                            "name": "odbiór osobisty",
+                            "description": "odbiór w siedzibie firmy"
+                        },
+                        {
+                            "id": "15",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony",
+                            "description": ""
+                        },
+                        {
+                            "id": "13",
+                            "engine": "inpost",
+                            "name": "InPost Paczkomaty 24/7",
+                            "description": ""
+                        },
+                        {
+                            "id": "17",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony priorytet",
+                            "description": ""
+                        },
+                        {
+                            "id": "12",
+                            "engine": "inpost",
+                            "name": "InPost Kurier",
+                            "description": ""
+                        },
+                        {
+                            "id": "10",
+                            "engine": "pocztaPolska",
+                            "name": "Kurier Pocztex48",
+                            "description": ""
+                        }
+                    ],
+                    "shipping_countries": {
+                        "179": "Polska"
+                    },
+                    "shipping_country": 179,
+                    "country2shipping": {
+                        "179": [
+                            {
+                                "id": 1,
+                                "lowestCost": 0,
+                                "lowestCostWithCurrency": "0,00 zł"
+                            },
+                            {
+                                "id": 15,
+                                "lowestCost": 10.9,
+                                "lowestCostWithCurrency": "10,90 zł"
+                            },
+                            {
+                                "id": 13,
+                                "lowestCost": 13,
+                                "lowestCostWithCurrency": "13,00 zł"
+                            },
+                            {
+                                "id": 17,
+                                "lowestCost": 14,
+                                "lowestCostWithCurrency": "14,00 zł"
+                            },
+                            {
+                                "id": 12,
+                                "lowestCost": 16,
+                                "lowestCostWithCurrency": "16,00 zł"
+                            },
+                            {
+                                "id": 10,
+                                "lowestCost": 19,
+                                "lowestCostWithCurrency": "19,00 zł"
+                            }
+                        ]
+                    }
+                },
+                "thumbnail_high_res": "/environment/cache/images/productGfx_764486_0_0/2025_11_03-13_00-Office-Lens.jpg",
+                "display_code": "746878",
+                "attributes": {
+                    "rok_wydania": "1991",
+                    "wydawnictwo": "Egmont American",
+                    "liczba_stron": "32",
+                    "wysokość": "240",
+                    "oprawa": "miękka",
+                    "stan_książki": "4",
+                    "tłumacz": "Arno Jaworowski Mariusz",
+                    "wydanie": "I",
+                    "fotografie": "kolorowe"
+                },
+                "description": "Nieznaczne przetarcia, przybrudzenia, zagięcia okładki.",
+                "id": 677923,
+                "category_id": 113
+            },
+            "error": "Category mapping not found"
+        }
+    ]
+}
