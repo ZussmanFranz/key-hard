@@ -647,3 +647,155 @@ class Initializer:
         except Exception as e:
             logger.error(f"Failed to save summary: {e}")
             return False
+
+
+    def remove_all_products(self) -> bool:
+        '''
+        Removes all products from PrestaShop.
+
+        Returns:
+            True if successful, False otherwise
+        '''
+        try:
+            logger.info("--- Started removing all products ---")
+            
+            # Get all products
+            response = requests.get(
+                f"{self.api_url}/products",
+                params={"ws_key": self.api_key, "output_format": "JSON", "display": "full"},
+                headers=self.get_auth_headers(),
+                timeout=15,
+                verify=False
+            )
+            
+            if not response.ok:
+                logger.error(f"Failed to fetch products list. Status: {response.status_code}")
+                return False
+            
+            products_data = response.json()
+            products = products_data.get("products", [])
+            
+            if not products:
+                logger.info("No products to remove")
+                return True
+            
+            logger.info(f"Found {len(products)} products to remove")
+            
+            removed_count = 0
+            failed_count = 0
+            
+            for product in products:
+                product_id = product.get("id")
+                product_name = product.get("name", "Unknown")
+                
+                try:
+                    delete_response = requests.delete(
+                        f"{self.api_url}/products/{product_id}",
+                        params={"ws_key": self.api_key},
+                        headers=self.get_auth_headers(),
+                        timeout=10,
+                        verify=False
+                    )
+                    
+                    if delete_response.status_code in [200, 204]:
+                        logger.info(f"Removed product {product_id}: {product_name}")
+                        removed_count += 1
+                    else:
+                        logger.warning(f"Failed to remove product {product_id} ({product_name}). Status: {delete_response.status_code}")
+                        failed_count += 1
+                except Exception as e:
+                    logger.error(f"Error removing product {product_id}: {e}")
+                    failed_count += 1
+            
+            logger.info(f"--- Finished removing products. Removed: {removed_count}, Failed: {failed_count} ---")
+            return failed_count == 0
+            
+        except Exception as e:
+            logger.error(f"Error while removing products: {type(e).__name__}: {e}")
+            return False
+
+
+    
+    def remove_all_categories(self) -> bool:
+        '''
+        Removes all non-basic categories from PrestaShop.
+        Only keeps the root category (id=1) and its direct children (Baza/Root).
+
+        Returns:
+            True if successful, False otherwise
+        '''
+        try:
+            logger.info("--- Started removing all non-basic categories ---")
+            
+            # Get all categories
+            response = requests.get(
+                f"{self.api_url}/categories",
+                params={"ws_key": self.api_key, "output_format": "JSON", "display": "full"},
+                headers=self.get_auth_headers(),
+                timeout=15,
+                verify=False
+            )
+            
+            if not response.ok:
+                logger.error(f"Failed to fetch categories list. Status: {response.status_code}")
+                return False
+            
+            categories_data = response.json()
+            categories = categories_data.get("categories", [])
+            
+            if not categories:
+                logger.info("No categories to remove")
+                return True
+            
+            logger.info(f"Found {len(categories)} categories to evaluate")
+            
+            # Sort by level_depth descending to remove leaf categories first
+            categories_sorted = sorted(categories, key=lambda x: int(x.get("level_depth", 0)), reverse=True)
+            
+            removed_count = 0
+            failed_count = 0
+            skipped_count = 0
+            
+            for category in categories_sorted:
+                category_id = category.get("id")
+                category_name = category.get("name", [{}])[0].get("value", "Unknown")
+                level_depth = int(category.get("level_depth", 0))
+                
+                # Skip root category (id=1)
+                if category_id == "1":
+                    logger.info(f"Skipping root category (id=1)")
+                    skipped_count += 1
+                    continue
+                
+                # Keep only root-level categories (level_depth=0), remove all others
+                if level_depth == 0:
+                    logger.info(f"Skipping basic category {category_id}: {category_name} (level_depth=0)")
+                    skipped_count += 1
+                    continue
+                
+                # Remove all other categories
+                try:
+                    delete_response = requests.delete(
+                        f"{self.api_url}/categories/{category_id}",
+                        params={"ws_key": self.api_key},
+                        headers=self.get_auth_headers(),
+                        timeout=10,
+                        verify=False
+                    )
+                    
+                    if delete_response.status_code in [200, 204]:
+                        logger.info(f"Removed category {category_id}: {category_name} (level_depth={level_depth})")
+                        removed_count += 1
+                    else:
+                        logger.warning(f"Failed to remove category {category_id} ({category_name}). Status: {delete_response.status_code}")
+                        failed_count += 1
+                except Exception as e:
+                    logger.error(f"Error removing category {category_id}: {e}")
+                    failed_count += 1
+            
+            logger.info(f"--- Finished removing categories. Removed: {removed_count}, Skipped: {skipped_count}, Failed: {failed_count} ---")
+            return failed_count == 0
+            
+        except Exception as e:
+            logger.error(f"Error while removing all categories: {type(e).__name__}: {e}")
+            return False

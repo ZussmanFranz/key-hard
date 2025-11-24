@@ -24,6 +24,21 @@ if __name__ == "__main__":
         default=None,
         help="Maximum number of products to create (optional)"
     )
+
+    parser.add_argument(
+        "--remove-categories",
+        type=bool,
+        default=False,
+        help="Remove old categories before pushing new"
+    )
+
+    parser.add_argument(
+        "--remove-products",
+        type=bool,
+        default=False,
+        help="Remove old products before pushing new"
+    )
+
     
     args = parser.parse_args()
     
@@ -39,7 +54,7 @@ if __name__ == "__main__":
         print("Failed to connect to Prestashop API")
         exit(1)
     print("Successfully connected to Prestashop API\n")
-    
+
    
     if not init.load_categories():
         print("Failed to load categories")
@@ -51,6 +66,20 @@ if __name__ == "__main__":
         print("Failed to load products")
         exit(1)
     print("Products loaded successfully\n")
+
+
+    
+    if args.remove_products:
+        if not init.remove_all_products():
+            print("Failed to remove products before initializing new")
+            exit(1)
+        print("Old products removed successfully")
+
+    if args.remove_categories:
+        if not init.remove_all_categories():
+            print("Failed to remove categories before initializing new")
+            exit(1)
+        print("Old categories removed successfully")
 
 
     if not init.create_categories():
