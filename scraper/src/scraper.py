@@ -534,7 +534,16 @@ class Scraper:
         if not self.products:
             raise ValueError("Products are required for image")
         
-        self.images_bin = []
+        def extract_image_name(url):
+            name = regex.search(r"/([\w\d.-]+)$", url)
+
+            if name:
+                # First and only group, indexing from 1
+                return name.group(1)
+            else:
+                return None
+
+        self.images = []
 
         logger.info(f"--- Started parsing {n_images} sample images ---")
 
@@ -546,20 +555,31 @@ class Scraper:
 
         while parsed < n_images and i < n_products:
             i += 1
-            
+
+            product_id = self.products[i]["id"]
+            name = extract_image_name(self.products[i]["thumbnail_high_res"])
+            print(name)
+
             resp = requests.get(f"{self.url}{self.products[i]["thumbnail_high_res"]}")
 
             if not resp.ok:
-                logger.error(f"Failed to parse high-res image for product (id: {self.products[i]["id"]}), skipping it...")
+                logger.error(f"Failed to parse high-res image for product (id: {product_id}), skipping it...")
                 continue
                     
-            logger.info(f"Parsed high-res image for product (id: {self.products[i]["id"]})")
+            logger.info(f"Parsed high-res image for product (id: {product_id})")
+            
+            # A dictionary with minimal data
+            image = {
+                "name" : name,
+                "product_id" : product_id,
+                "content" : resp.content  # Raw binary data
+            }
 
-            # Raw binary data is contained inside resp.content
-            self.images_bin.append(resp.content)
+            self.images.append(image)
             parsed += 1
 
-        logger.info(f"--- Parsed {len(self.images_bin)} images ---")
+        logger.info(f"--- Parsed {len(self.images)} images ---")
+
 
 
     def clean_for_url(self, cat_name):
@@ -573,7 +593,7 @@ class Scraper:
     def load_tree(self, path="categories.json"):
         with open(path, "r", encoding="utf-8") as f:
             self.tree = json.load(f)
-            logger.info(f"Categories tree has been load from {path}")
+            logger.info(f"Categories tree has been loaded from {path}")
 
     def save_products(self, path="products.json"):
         with open(path, "w", encoding="utf-8") as f:
@@ -583,6 +603,16 @@ class Scraper:
     def load_products(self, path="products.json"):
         with open(path, "r", encoding="utf-8") as f:
             self.products = json.load(f)
-            logger.info(f"Products have been load from {path}")
+            logger.info(f"Products have been loaded from {path}")
+
+    def save_images(self, basic_path="/images/"):
+        for img in self.images:
+            save_path = f"{basic_path}{img['name']}"
+            
+            # wb for writing raw binary data
+            with open(save_path, "wb") as f:
+                f.write(img['content'])
+                logger.info(f"Image has been saved to {save_path}")
+
 
 
