@@ -1,8 +1,13 @@
 import requests
 import json
-import logging_config
+import sys
+import os
 import logging
 from typing import Dict, List, Optional, Any
+
+# Add parent directory to path to import logging_config from scraper/src
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import logging_config
 
 logging_config.setup_logging()
 logger = logging.getLogger(__name__)
@@ -117,7 +122,8 @@ class Initializer:
             response = requests.get(
                 f"{self.api_url}/api/categories",
                 headers=self.get_auth_headers(),
-                timeout=10
+                timeout=10,
+                verify=False
             )
             
             if response.ok:
@@ -234,7 +240,8 @@ class Initializer:
                 f"{self.api_url}/api/categories",
                 json=payload,
                 headers=self.get_auth_headers(),
-                timeout=10
+                timeout=10,
+                verify=False
             )
             
             if response.ok:
@@ -366,7 +373,8 @@ class Initializer:
                 f"{self.api_url}/api/products",
                 json=payload,
                 headers=self.get_auth_headers(),
-                timeout=15
+                timeout=15,
+                verify=False
             )
             
             if response.ok:
@@ -457,7 +465,8 @@ class Initializer:
                 f"{self.api_url}/api/products/{prestashop_product_id}/images",
                 json=payload,
                 headers=self.get_auth_headers(),
-                timeout=15
+                timeout=15,
+                verify=False
             )
             
             if response.ok:
