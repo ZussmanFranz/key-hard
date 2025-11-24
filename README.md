@@ -4,7 +4,7 @@
 
 Key Hard is an educational project created to learn pipelines and deployment in IT.
 
-It is based on an **e-commerce shop** selling software keys: [key-soft.pl](https://key-soft.pl/)
+It is based on an **e-commerce shop** selling software keys: [agrochowski.pl](https://agrochowski.pl/)
 
 ## Technologies used
 
@@ -36,9 +36,30 @@ key-hard
 └───scraper # Scrapper from reference page
 |   └───src     # Source code of scraper
 |   └───results # Scraping results
+|       └───images # Sample images
 |
 └───tests # Web tests
 
 ```
 
 Every empty directory was initialized with `.gitkeep` file inside of it. **It is needed to be deleted after any other content is created inside such directory.**
+
+## Setup and usage
+
+### Scraper
+
+**All scripts are intended to be initialized from repository root directory**.
+
+1. Initialize virtual environment, activate it and install required packages:
+
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r ./requirements.txt
+    ```
+
+2. To parse categories, products and images, simply run
+
+    ```bash
+    python scraper/src/parse.py
+    ```
