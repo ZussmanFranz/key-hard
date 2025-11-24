@@ -231,11 +231,16 @@ class Initializer:
         '''
         try:
             # Build XML payload - PrestaShop requires XML in request body, but returns JSON
+            # Note: PrestaShop stores multilingual content with language IDs (1 for Polish, 2 for English)
             xml_payload = f"""<?xml version="1.0" encoding="UTF-8"?>
 <prestashop>
     <category>
-        <name>{category.get("name")}</name>
-        <link_rewrite>{self._slugify(category.get("name", ""))}</link_rewrite>
+        <name>
+            <language id="1">{category.get("name")}</language>
+        </name>
+        <link_rewrite>
+            <language id="1">{self._slugify(category.get("name", ""))}</language>
+        </link_rewrite>
         <active>1</active>
         <id_parent>{parent_id}</id_parent>
     </category>
@@ -252,39 +257,40 @@ class Initializer:
             
             logger.info(f"POST {self.api_url}/categories - Status: {response.status_code}, Headers: {dict(response.headers)}, Body: {response.text[:200]}")
             
-            if response.ok:
-                if response.text:
-                    try:
-                        response_data = response.json()
-                        prestashop_id = response_data.get("category", {}).get("id")
-                        if not prestashop_id:
-                            logger.warning(f"No ID in response for category '{category.get('name')}'")
-                            prestashop_id = 1
-                    except Exception as parse_err:
-                        logger.warning(f"Could not parse response for category '{category.get('name')}': {parse_err}")
-                        prestashop_id = 1
-                else:
-                    logger.warning(f"Empty response body for category '{category.get('name')}', using dummy ID")
-                    prestashop_id = 1
+            # PrestaShop returns HTTP 500 with PHP Notices but still creates the resource
+            # Check if category data is in response regardless of status code
+            if response.text:
+                try:
+                    response_data = response.json()
+                    prestashop_id = response_data.get("category", {}).get("id")
                     
-                source_id = category.get("source_id")
-                
-                # Store mapping between source and Prestashop IDs
-                if source_id:
-                    self.category_id_map[source_id] = prestashop_id
-                
-                logger.info(f"Created category '{category.get('name')}' (source_id: {source_id}, prestashop_id: {prestashop_id})")
-                self.created_categories.append(prestashop_id)
-                return prestashop_id
+                    # If we got a category ID, the creation was successful
+                    if prestashop_id:
+                        source_id = category.get("id")  # Categories have 'id' field, not 'source_id'
+                        
+                        # Store mapping between source and Prestashop IDs
+                        if source_id:
+                            self.category_id_map[source_id] = prestashop_id
+                        
+                        logger.info(f"Created category '{category.get('name')}' (source_id: {source_id}, prestashop_id: {prestashop_id})")
+                        self.created_categories.append(prestashop_id)
+                        return prestashop_id
+                    else:
+                        logger.warning(f"No ID in response for category '{category.get('name')}'")
+                except Exception as parse_err:
+                    logger.warning(f"Could not parse response for category '{category.get('name')}': {parse_err}")
             else:
-                logger.error(f"Failed to create category '{category.get('name')}'. Status: {response.status_code}. Response: {response.text}")
-                self.failed_operations.append({
-                    "type": "category",
-                    "data": category,
-                    "status_code": response.status_code,
-                    "error": response.text
-                })
-                return None
+                logger.warning(f"Empty response body for category '{category.get('name')}'")
+            
+            # If we got here, something went wrong
+            logger.error(f"Failed to create category '{category.get('name')}'. Status: {response.status_code}. Response: {response.text}")
+            self.failed_operations.append({
+                "type": "category",
+                "data": category,
+                "status_code": response.status_code,
+                "error": response.text
+            })
+            return None
                 
         except Exception as e:
             logger.error(f"Error while creating category '{category.get('name')}': {type(e).__name__}: {e}")
@@ -399,13 +405,19 @@ class Initializer:
                     return ""
                 return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&apos;")
             
-            # Build XML payload for Prestashop REST API
+            # Build XML payload for Prestashop REST API with multilingual fields
             xml_payload = f"""<?xml version="1.0" encoding="UTF-8"?>
 <prestashop>
     <product>
-        <name>{escape_xml(product.get("product_name", "Unknown"))}</name>
-        <description_short>{escape_xml(description[:200] if description else "")}</description_short>
-        <description>{escape_xml(description)}</description>
+        <name>
+            <language id="1">{escape_xml(product.get("product_name", "Unknown"))}</language>
+        </name>
+        <description_short>
+            <language id="1">{escape_xml(description[:200] if description else "")}</language>
+        </description_short>
+        <description>
+            <language id="1">{escape_xml(description)}</language>
+        </description>
         <price>{price}</price>
         <active>1</active>
         <id_category_default>{prestashop_category_id}</id_category_default>
@@ -428,40 +440,39 @@ class Initializer:
                 verify=False
             )
             
-            if response.ok:
+            # PrestaShop returns HTTP 500 with PHP Warnings but still creates the resource
+            # Check if product data is in response regardless of status code
+            if response.text:
                 try:
                     response_data = response.json()
                     prestashop_product_id = response_data.get("product", {}).get("id")
+                    
+                    # If we got a product ID, the creation was successful
+                    if prestashop_product_id:
+                        source_product_id = product.get("id")
+                        logger.info(f"Created product '{product.get('product_name')}' (source_id: {source_product_id}, prestashop_id: {prestashop_product_id})")
+                        self.created_products.append(prestashop_product_id)
+                        
+                        # Try to add product images
+                        self._add_product_images(prestashop_product_id, product)
+                        
+                        return prestashop_product_id
+                    else:
+                        logger.warning(f"Could not extract product ID from response for '{product.get('product_name')}'")
                 except Exception as parse_err:
                     logger.warning(f"Could not parse response for product '{product.get('product_name')}': {parse_err}")
-                    prestashop_product_id = None
-                
-                if prestashop_product_id:
-                    source_product_id = product.get("id")
-                    logger.info(f"Created product '{product.get('product_name')}' (source_id: {source_product_id}, prestashop_id: {prestashop_product_id})")
-                    self.created_products.append(prestashop_product_id)
-                    
-                    # Try to add product images
-                    self._add_product_images(prestashop_product_id, product)
-                    
-                    return prestashop_product_id
-                else:
-                    logger.warning(f"Could not extract product ID from response for '{product.get('product_name')}'")
-                    self.failed_operations.append({
-                        "type": "product",
-                        "data": product,
-                        "error": "No ID in response"
-                    })
-                    return None
             else:
-                logger.error(f"Failed to create product '{product.get('product_name')}'. Status: {response.status_code}. Response: {response.text}")
-                self.failed_operations.append({
-                    "type": "product",
-                    "data": product,
-                    "status_code": response.status_code,
-                    "error": response.text
-                })
-                return None
+                logger.warning(f"Empty response body for product '{product.get('product_name')}'")
+            
+            # If we got here, something went wrong
+            logger.error(f"Failed to create product '{product.get('product_name')}'. Status: {response.status_code}. Response: {response.text}")
+            self.failed_operations.append({
+                "type": "product",
+                "data": product,
+                "status_code": response.status_code,
+                "error": response.text
+            })
+            return None
                 
         except Exception as e:
             logger.error(f"Error while creating product '{product.get('product_name')}': {type(e).__name__}: {e}")
