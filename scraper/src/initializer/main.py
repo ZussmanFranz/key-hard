@@ -93,7 +93,7 @@ if __name__ == "__main__":
         print("All products created successfully\n")
     
     # Print summary
-    # summary = init.get_summary()
+    summary = init.get_summary()
     print("\n" + "="*60)
     print("INITIALIZATION SUMMARY")
     print("="*60)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     print(f"Failed operations: {summary['failed_operations']}")
     print("="*60 + "\n")
     
-    init.save_summary("initialization_summary.json")
+    # init.save_summary("initialization_summary.json")
     
     if summary['failed_operations'] > 0:
         print("\nFailed operations details:")
