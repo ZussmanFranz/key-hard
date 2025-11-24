@@ -27,15 +27,13 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--remove-categories",
-        type=bool,
-        default=False,
+        action="store_true",
         help="Remove old categories before pushing new"
     )
 
     parser.add_argument(
         "--remove-products",
-        type=bool,
-        default=False,
+        action="store_true",
         help="Remove old products before pushing new"
     )
 
@@ -95,7 +93,7 @@ if __name__ == "__main__":
         print("All products created successfully\n")
     
     # Print summary
-    summary = init.get_summary()
+    # summary = init.get_summary()
     print("\n" + "="*60)
     print("INITIALIZATION SUMMARY")
     print("="*60)

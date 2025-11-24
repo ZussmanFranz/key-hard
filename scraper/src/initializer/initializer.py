@@ -659,16 +659,16 @@ class Initializer:
         try:
             logger.info("--- Started removing all products ---")
             
-            # Get all products
+            # Get all products (without display=full to avoid PHP notices)
             response = requests.get(
                 f"{self.api_url}/products",
-                params={"ws_key": self.api_key, "output_format": "JSON", "display": "full"},
+                params={"ws_key": self.api_key, "output_format": "JSON"},
                 headers=self.get_auth_headers(),
                 timeout=15,
                 verify=False
             )
             
-            if not response.ok:
+            if response.status_code != 200:
                 logger.error(f"Failed to fetch products list. Status: {response.status_code}")
                 return False
             
@@ -697,9 +697,24 @@ class Initializer:
                         verify=False
                     )
                     
+                    # Accept 200, 204, or 500 with valid response (PHP notices)
                     if delete_response.status_code in [200, 204]:
                         logger.info(f"Removed product {product_id}: {product_name}")
                         removed_count += 1
+                    elif delete_response.status_code == 500:
+                        # Check if deletion was successful despite HTTP 500
+                        try:
+                            response_body = delete_response.json()
+                            # If no errors or only PHP notices, consider it a success
+                            if "errors" not in response_body or not response_body.get("errors"):
+                                logger.info(f"Removed product {product_id}: {product_name}")
+                                removed_count += 1
+                            else:
+                                logger.warning(f"Failed to remove product {product_id} ({product_name}). Errors: {response_body.get('errors')}")
+                                failed_count += 1
+                        except:
+                            logger.warning(f"Failed to remove product {product_id} ({product_name}). Status: 500")
+                            failed_count += 1
                     else:
                         logger.warning(f"Failed to remove product {product_id} ({product_name}). Status: {delete_response.status_code}")
                         failed_count += 1
@@ -727,16 +742,16 @@ class Initializer:
         try:
             logger.info("--- Started removing all non-basic categories ---")
             
-            # Get all categories
+            # Get all categories (without display=full to avoid PHP notices)
             response = requests.get(
                 f"{self.api_url}/categories",
-                params={"ws_key": self.api_key, "output_format": "JSON", "display": "full"},
+                params={"ws_key": self.api_key, "output_format": "JSON"},
                 headers=self.get_auth_headers(),
                 timeout=15,
                 verify=False
             )
             
-            if not response.ok:
+            if response.status_code != 200:
                 logger.error(f"Failed to fetch categories list. Status: {response.status_code}")
                 return False
             
@@ -758,7 +773,7 @@ class Initializer:
             
             for category in categories_sorted:
                 category_id = category.get("id")
-                category_name = category.get("name", [{}])[0].get("value", "Unknown")
+                category_name = category.get("name", [{}])[0].get("value", "Unknown") if isinstance(category.get("name"), list) else category.get("name", "Unknown")
                 level_depth = int(category.get("level_depth", 0))
                 
                 # Skip root category (id=1)
@@ -783,9 +798,24 @@ class Initializer:
                         verify=False
                     )
                     
+                    # Accept 200, 204, or 500 with valid response (PHP notices)
                     if delete_response.status_code in [200, 204]:
                         logger.info(f"Removed category {category_id}: {category_name} (level_depth={level_depth})")
                         removed_count += 1
+                    elif delete_response.status_code == 500:
+                        # Check if deletion was successful despite HTTP 500
+                        try:
+                            response_body = delete_response.json()
+                            # If no errors or only PHP notices, consider it a success
+                            if "errors" not in response_body or not response_body.get("errors"):
+                                logger.info(f"Removed category {category_id}: {category_name} (level_depth={level_depth})")
+                                removed_count += 1
+                            else:
+                                logger.warning(f"Failed to remove category {category_id} ({category_name}). Errors: {response_body.get('errors')}")
+                                failed_count += 1
+                        except:
+                            logger.warning(f"Failed to remove category {category_id} ({category_name}). Status: 500")
+                            failed_count += 1
                     else:
                         logger.warning(f"Failed to remove category {category_id} ({category_name}). Status: {delete_response.status_code}")
                         failed_count += 1
