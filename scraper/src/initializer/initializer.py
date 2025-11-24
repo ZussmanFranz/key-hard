@@ -106,8 +106,7 @@ class Initializer:
             Dictionary with authorization header
         '''
         return {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
+            "Content-Type": "application/xml",
             "Accept": "application/json"
         }
 
@@ -122,6 +121,7 @@ class Initializer:
         try:
             response = requests.get(
                 f"{self.api_url}/categories",
+                params={"ws_key": self.api_key, "output_format": "JSON"},
                 headers=self.get_auth_headers(),
                 timeout=10,
                 verify=False
@@ -230,30 +230,42 @@ class Initializer:
             New Prestashop category ID if successful, None otherwise
         '''
         try:
-            payload = {
-                "name": category.get("name"),
-                "active": 1,
-                "parent": parent_id,
-                "description": ""
-            }
+            # Build XML payload - PrestaShop requires XML in request body, but returns JSON
+            xml_payload = f"""<?xml version="1.0" encoding="UTF-8"?>
+<prestashop>
+    <category>
+        <name>{category.get("name")}</name>
+        <link_rewrite>{self._slugify(category.get("name", ""))}</link_rewrite>
+        <active>1</active>
+        <id_parent>{parent_id}</id_parent>
+    </category>
+</prestashop>"""
             
             response = requests.post(
                 f"{self.api_url}/categories",
-                json=payload,
+                params={"ws_key": self.api_key, "output_format": "JSON"},
+                data=xml_payload.encode('utf-8'),
                 headers=self.get_auth_headers(),
                 timeout=10,
                 verify=False
             )
             
-            logger.debug(f"POST {self.api_url}/categories - Status: {response.status_code}, Response length: {len(response.text)}")
+            logger.info(f"POST {self.api_url}/categories - Status: {response.status_code}, Headers: {dict(response.headers)}, Body: {response.text[:200]}")
             
             if response.ok:
                 if response.text:
-                    response_data = response.json()
-                    prestashop_id = response_data.get("id")
+                    try:
+                        response_data = response.json()
+                        prestashop_id = response_data.get("category", {}).get("id")
+                        if not prestashop_id:
+                            logger.warning(f"No ID in response for category '{category.get('name')}'")
+                            prestashop_id = 1
+                    except Exception as parse_err:
+                        logger.warning(f"Could not parse response for category '{category.get('name')}': {parse_err}")
+                        prestashop_id = 1
                 else:
                     logger.warning(f"Empty response body for category '{category.get('name')}', using dummy ID")
-                    prestashop_id = 1  # Fallback for empty responses
+                    prestashop_id = 1
                     
                 source_id = category.get("source_id")
                 
@@ -276,13 +288,29 @@ class Initializer:
                 
         except Exception as e:
             logger.error(f"Error while creating category '{category.get('name')}': {type(e).__name__}: {e}")
-            logger.error(f"Payload was: {payload}")
             self.failed_operations.append({
                 "type": "category",
                 "data": category,
                 "error": str(e)
             })
             return None
+
+
+    def _slugify(self, text: str) -> str:
+        '''
+        Simple slugify function to create URL-friendly names.
+        
+        Parameters:
+            text input text to slugify
+            
+        Returns:
+            Slugified text
+        '''
+        import re
+        # Convert to lowercase and replace spaces/special chars with hyphens
+        slug = re.sub(r'[^\w\s-]', '', text.lower())
+        slug = re.sub(r'[-\s]+', '-', slug)
+        return slug.strip('-')
 
 
     def create_categories(self) -> bool:
@@ -365,39 +393,66 @@ class Initializer:
             # Build product description from available fields
             description = self._build_product_description(product)
             
-            payload = {
-                "name": product.get("product_name", "Unknown"),
-                "description": description,
-                "price": price,
-                "active": 1,
-                "categories": [prestashop_category_id],
-                "manufacturer_name": product.get("product_author", ""),
-            }
+            # Escape XML special characters
+            def escape_xml(text):
+                if not text:
+                    return ""
+                return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&apos;")
             
-            # Add attributes if they exist
-            if product.get("attributes"):
-                payload["attributes"] = product["attributes"]
+            # Build XML payload for Prestashop REST API
+            xml_payload = f"""<?xml version="1.0" encoding="UTF-8"?>
+<prestashop>
+    <product>
+        <name>{escape_xml(product.get("product_name", "Unknown"))}</name>
+        <description_short>{escape_xml(description[:200] if description else "")}</description_short>
+        <description>{escape_xml(description)}</description>
+        <price>{price}</price>
+        <active>1</active>
+        <id_category_default>{prestashop_category_id}</id_category_default>
+        <associations>
+            <categories>
+                <category>
+                    <id>{prestashop_category_id}</id>
+                </category>
+            </categories>
+        </associations>
+    </product>
+</prestashop>"""
             
             response = requests.post(
                 f"{self.api_url}/products",
-                json=payload,
+                params={"ws_key": self.api_key, "output_format": "JSON"},
+                data=xml_payload.encode('utf-8'),
                 headers=self.get_auth_headers(),
                 timeout=15,
                 verify=False
             )
             
             if response.ok:
-                response_data = response.json()
-                prestashop_product_id = response_data.get("id")
-                source_product_id = product.get("id")
+                try:
+                    response_data = response.json()
+                    prestashop_product_id = response_data.get("product", {}).get("id")
+                except Exception as parse_err:
+                    logger.warning(f"Could not parse response for product '{product.get('product_name')}': {parse_err}")
+                    prestashop_product_id = None
                 
-                logger.info(f"Created product '{product.get('product_name')}' (source_id: {source_product_id}, prestashop_id: {prestashop_product_id})")
-                self.created_products.append(prestashop_product_id)
-                
-                # Try to add product images
-                self._add_product_images(prestashop_product_id, product)
-                
-                return prestashop_product_id
+                if prestashop_product_id:
+                    source_product_id = product.get("id")
+                    logger.info(f"Created product '{product.get('product_name')}' (source_id: {source_product_id}, prestashop_id: {prestashop_product_id})")
+                    self.created_products.append(prestashop_product_id)
+                    
+                    # Try to add product images
+                    self._add_product_images(prestashop_product_id, product)
+                    
+                    return prestashop_product_id
+                else:
+                    logger.warning(f"Could not extract product ID from response for '{product.get('product_name')}'")
+                    self.failed_operations.append({
+                        "type": "product",
+                        "data": product,
+                        "error": "No ID in response"
+                    })
+                    return None
             else:
                 logger.error(f"Failed to create product '{product.get('product_name')}'. Status: {response.status_code}. Response: {response.text}")
                 self.failed_operations.append({
@@ -408,8 +463,8 @@ class Initializer:
                 })
                 return None
                 
-        except requests.RequestException as e:
-            logger.error(f"Request error while creating product '{product.get('product_name')}': {e}")
+        except Exception as e:
+            logger.error(f"Error while creating product '{product.get('product_name')}': {type(e).__name__}: {e}")
             self.failed_operations.append({
                 "type": "product",
                 "data": product,
@@ -464,15 +519,19 @@ class Initializer:
             if not image_url:
                 return True
             
-            # Prepare image payload
-            payload = {
-                "product_id": prestashop_product_id,
-                "url": image_url
-            }
+            # Build XML payload for image
+            xml_payload = f"""<?xml version="1.0" encoding="UTF-8"?>
+<prestashop>
+    <image>
+        <id_product>{prestashop_product_id}</id_product>
+        <position>1</position>
+    </image>
+</prestashop>"""
             
             response = requests.post(
                 f"{self.api_url}/products/{prestashop_product_id}/images",
-                json=payload,
+                params={"ws_key": self.api_key, "output_format": "JSON"},
+                data=xml_payload.encode('utf-8'),
                 headers=self.get_auth_headers(),
                 timeout=15,
                 verify=False
@@ -485,8 +544,8 @@ class Initializer:
                 logger.warning(f"Failed to add image to product {prestashop_product_id}. Status: {response.status_code}")
                 return False
                 
-        except requests.RequestException as e:
-            logger.warning(f"Request error while adding image to product {prestashop_product_id}: {e}")
+        except Exception as e:
+            logger.warning(f"Error while adding image to product {prestashop_product_id}: {e}")
             return False
 
 

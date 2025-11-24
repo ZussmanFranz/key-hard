@@ -2,7 +2,7 @@ from initializer import Initializer
 import argparse
 
 
-API_URL = "http://localhost:8080/api"
+API_URL = "https://localhost:8443/api"
 CATEGORIES_PATH = "scraper/results/categories.json"
 PRODUCTS_PATH = "scraper/results/products.json"
 
