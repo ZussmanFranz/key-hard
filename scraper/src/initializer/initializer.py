@@ -673,7 +673,20 @@ class Initializer:
                 return False
             
             products_data = response.json()
-            products = products_data.get("products", [])
+            
+            # Handle different response formats
+            if isinstance(products_data, dict):
+                products = products_data.get("products", [])
+            else:
+                products = products_data if isinstance(products_data, list) else []
+            
+            # Ensure products is a list of dicts, not a list of primitive types
+            if not products or not isinstance(products, list):
+                logger.info("No products to remove")
+                return True
+            
+            # Filter out non-dict entries (some API responses may have mixed types)
+            products = [p for p in products if isinstance(p, dict)]
             
             if not products:
                 logger.info("No products to remove")
@@ -685,6 +698,10 @@ class Initializer:
             failed_count = 0
             
             for product in products:
+                if not isinstance(product, dict):
+                    logger.warning(f"Skipping invalid product entry: {product}")
+                    continue
+                
                 product_id = product.get("id")
                 product_name = product.get("name", "Unknown")
                 
@@ -782,8 +799,8 @@ class Initializer:
                 category_name = category.get("name", [{}])[0].get("value", "Unknown") if isinstance(category.get("name"), list) else category.get("name", "Unknown")
                 level_depth = int(category.get("level_depth", 0))
                 
-                # Skip root category (id=1) ONLY
-                if category_id == "1":
+                # Skip root category (id=1) ONLY - compare as strings and ints
+                if str(category_id) == "1" or category_id == 1:
                     logger.info(f"Skipping root category (id=1)")
                     skipped_count += 1
                     continue
