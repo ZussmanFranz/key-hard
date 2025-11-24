@@ -12,8 +12,8 @@ logging_config.setup_logging()
 logger = logging.getLogger(__name__)
 
 class Scraper:
-    CATEGORIES_PATH = "webapi/front/pl_PL/categories/tree"
-    CATEGORY_PAGE_SUFFIX = "pl/c/{category_name}/{category_id}/{page_number}"
+    CATEGORIES_PATH = "/webapi/front/pl_PL/categories/tree"
+    CATEGORY_PAGE_SUFFIX = "/pl/c/{category_name}/{category_id}/{page_number}"
 
     def __init__(self, url, crop=False, n_cats=None, n_subcats=None, n_layers=None, n_products=None):
         '''
@@ -110,7 +110,7 @@ class Scraper:
             
         
     def parse_categories(self, parse_pages=True):
-        response = requests.get(f'{self.url}/{self.CATEGORIES_PATH}')
+        response = requests.get(f'{self.url}{self.CATEGORIES_PATH}')
 
         if not response.ok:
             raise ValueError("Wrong categories path")
@@ -146,7 +146,7 @@ class Scraper:
     def parse_number_of_pages(self, category):
         suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category['name'], category_id=category['id'], page_number=1)
         
-        response = requests.get(f"{self.url}/{suffix}")
+        response = requests.get(f"{self.url}{suffix}")
 
         if not response.ok:
             raise ValueError("pages are over or the suffix is incorrect")
@@ -296,7 +296,7 @@ class Scraper:
         category_name = self.clean_for_url(category['name'])
         suffix = self.CATEGORY_PAGE_SUFFIX.format(category_name=category_name, category_id=category['id'], page_number=page_n)
 
-        response = requests.get(f"{self.url}/{suffix}")
+        response = requests.get(f"{self.url}{suffix}")
 
         if not response.ok:
             raise ValueError("failed to parse category page")
@@ -529,6 +529,38 @@ class Scraper:
             product_info["tags"] = tags
             
     
+
+    def parse_sample_images(self, n_images):
+        if not self.products:
+            raise ValueError("Products are required for image")
+        
+        self.images_bin = []
+
+        logger.info(f"--- Started parsing {n_images} sample images ---")
+
+        # Loop variables
+        n_products = len(self.products)
+        parsed = 0
+        # Index var starts from -1 since it will be incremented immediately
+        i = -1
+
+        while parsed < n_images and i < n_products:
+            i += 1
+            
+            resp = requests.get(f"{self.url}{self.products[i]["thumbnail_high_res"]}")
+
+            if not resp.ok:
+                logger.error(f"Failed to parse high-res image for product (id: {self.products[i]["id"]}), skipping it...")
+                continue
+                    
+            logger.info(f"Parsed high-res image for product (id: {self.products[i]["id"]})")
+
+            # Raw binary data is contained inside resp.content
+            self.images_bin.append(resp.content)
+            parsed += 1
+
+        logger.info(f"--- Parsed {len(self.images_bin)} images ---")
+
 
     def clean_for_url(self, cat_name):
         return slugify(cat_name).capitalize()
