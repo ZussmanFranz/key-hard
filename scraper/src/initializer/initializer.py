@@ -742,20 +742,26 @@ class Initializer:
         try:
             logger.info("--- Started removing all non-basic categories ---")
             
-            # Get all categories (without display=full to avoid PHP notices)
+            # Get all categories with full details
             response = requests.get(
                 f"{self.api_url}/categories",
-                params={"ws_key": self.api_key, "output_format": "JSON"},
+                params={"ws_key": self.api_key, "output_format": "JSON", "display": "full"},
                 headers=self.get_auth_headers(),
                 timeout=15,
                 verify=False
             )
             
-            if response.status_code != 200:
+            # Accept 200 or 500 (PrestaShop returns 500 with valid JSON due to PHP notices)
+            if response.status_code not in [200, 500]:
                 logger.error(f"Failed to fetch categories list. Status: {response.status_code}")
                 return False
             
-            categories_data = response.json()
+            try:
+                categories_data = response.json()
+            except:
+                logger.error("Failed to parse categories response as JSON")
+                return False
+            
             categories = categories_data.get("categories", [])
             
             if not categories:
@@ -776,19 +782,13 @@ class Initializer:
                 category_name = category.get("name", [{}])[0].get("value", "Unknown") if isinstance(category.get("name"), list) else category.get("name", "Unknown")
                 level_depth = int(category.get("level_depth", 0))
                 
-                # Skip root category (id=1)
+                # Skip root category (id=1) ONLY
                 if category_id == "1":
                     logger.info(f"Skipping root category (id=1)")
                     skipped_count += 1
                     continue
                 
-                # Keep only root-level categories (level_depth=0), remove all others
-                if level_depth == 0:
-                    logger.info(f"Skipping basic category {category_id}: {category_name} (level_depth=0)")
-                    skipped_count += 1
-                    continue
-                
-                # Remove all other categories
+                # Remove ALL other categories (including those with level_depth=0)
                 try:
                     delete_response = requests.delete(
                         f"{self.api_url}/categories/{category_id}",
