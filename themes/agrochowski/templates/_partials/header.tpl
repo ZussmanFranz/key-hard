@@ -92,28 +92,7 @@
       <div class="header-menu-row">
         <div class="container">
             <nav class="innermenu">
-                <ul class="menu-list">
-                    <li class="parent">
-                        <a href="#" class="mainlevel">Książki <i class="fa-solid fa-chevron-down"></i></a>
-                        <div class="submenu">
-                            <ul>
-                                <li><a href="#">Autografy</a></li>
-                                <li><a href="#">Literatura piękna</a></li>
-                                <li><a href="#">Biografie, wspomnienia</a></li>
-                                <li><a href="#">Dla dzieci</a></li>
-                                <li><a href="#">Fantasy, SF</a></li>
-                                <li><a href="#">Kryminały</a></li>
-                            </ul>
-                        </div>
-                    </li>
-                    <li class="parent"><a href="#" class="mainlevel">Muzyka <i class="fa-solid fa-chevron-down"></i></a></li>
-                    <li class="parent"><a href="#" class="mainlevel">Komiksy <i class="fa-solid fa-chevron-down"></i></a></li>
-                    <li class="parent"><a href="#" class="mainlevel">Inne <i class="fa-solid fa-chevron-down"></i></a></li>
-                    <li class="parent"><a href="#" class="mainlevel">Polecane <i class="fa-solid fa-chevron-down"></i></a></li>
-                    <li><a href="#" class="mainlevel">Nowości</a></li>
-                    <li><a href="#" class="mainlevel">Promocje</a></li>
-                    <li><a href="#" class="mainlevel" style="color: #333;">Skup</a></li>
-                </ul>
+                {hook h='displayTop'}
             </nav>
         </div>
     </div>

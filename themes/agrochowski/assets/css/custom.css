@@ -268,7 +268,6 @@
     position: relative;
     z-index: 90;
     height: 55px; /* Компактная высота */
-    border-bottom: 1px solid #ece6d0;
 }
 
 .header-menu-row .container {
@@ -587,6 +586,10 @@
     height: 50px !important;
 }
 
+#header {
+	box-shadow: none;
+}
+
 #search_widget form input[type="text"] {
     position: relative !important;
     z-index: 1 !important;
@@ -604,3 +607,168 @@
     outline: none !important;
 }
 
+
+/* === ПОЛНАЯ ПЕРЕРАБОТКА МЕНЮ (FIX ВЫПАДАЮЩИХ ЭЛЕМЕНТОВ) === */
+
+/* 1. ГЛАВНЫЙ КОНТЕЙНЕРА */
+#_desktop_top_menu {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#_desktop_top_menu .top-menu {
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+
+/* 2. РОДИТЕЛЬСКИЕ ПУНКТЫ (Książki, Muzyka...) */
+#_desktop_top_menu .top-menu > li {
+    position: relative !important; /* Важно для привязки выпадайки */
+    display: flex !important;
+    align-items: center !important;
+    height: 100%;
+    margin-right: 5px !important;
+    border: none !important;
+}
+
+/* 1. Настройка ссылок (Родительские категории) */
+#_desktop_top_menu .top-menu > li > a {
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 18px !important;      /* Размер шрифта как на фото */
+    font-weight: 500 !important;     /* Средняя толщина */
+    color: #1e1e1e !important;       /* Темно-серый цвет (по умолчанию) */
+    text-transform: none !important; /* Обычный текст (не КАПС) */
+    padding: 10px 15px !important;
+    display: flex !important;        /* Чтобы выровнять текст и стрелку */
+    align-items: center !important;
+    border-bottom: none !important;  /* Убираем лишние линии */
+    transition: color 0.3s ease;     /* Плавное изменение цвета */
+}
+
+/* 2. Добавляем СТРЕЛКУ вниз (Chevron Down) */
+#_desktop_top_menu .top-menu > li > a[data-depth="0"]::after {
+    content: "\E313";                /* Код иконки Material Icons (галочка вниз) */
+    font-family: 'Material Icons' !important;
+    font-size: 18px !important;      /* Размер стрелки */
+    margin-left: 6px !important;     /* Отступ от текста до стрелки */
+    color: #1e1e1e !important;       /* Цвет стрелки (черный) */
+    border: none !important;         /* Убираем рамки темы */
+    font-weight: normal !important;  /* Стрелка не должна быть жирной */
+    margin-top: 1px !important;      /* Микро-коррекция высоты */
+}
+
+/* 3. Эффект ПРИ НАВЕДЕНИИ (Подсветка) */
+
+/* Цвет текста становится коричневым */
+#_desktop_top_menu .top-menu > li:hover > a {
+    color: #6b4027 !important;       /* Ваш коричневый цвет */
+}
+
+/* Цвет стрелки ТОЖЕ становится коричневым */
+#_desktop_top_menu .top-menu > li:hover > a::after {
+    color: #6b4027 !important;
+}
+
+/* Если пункт активен (вы уже внутри категории), он тоже будет коричневым */
+#_desktop_top_menu .top-menu > li.current > a {
+    color: #6b4027 !important;
+    font-weight: 600 !important;
+}
+
+/* 3. ВЫПАДАЮЩЕЕ ОКНО (БЕЛЫЙ БЛОК) */
+#_desktop_top_menu .top-menu .popover {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    width: 260px !important;       /* Фиксированная ширина */
+    background: #fff !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-top: 3px solid #6b4027 !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15) !important;
+    padding: 0 !important;         /* Убираем отступы контейнера */
+    z-index: 1000 !important;
+    display: none;                 /* Скрыто по умолчанию */
+}
+
+/* Показываем при наведении */
+#_desktop_top_menu .top-menu > li:hover .popover {
+    display: block !important;
+}
+
+/* 4. СБРОС ВНУТРЕННЕЙ СЕТКИ (Самое важное!) */
+/* Убиваем классы row, col-md-*, content, которые ломают верстку */
+#_desktop_top_menu .top-menu .popover .content,
+#_desktop_top_menu .top-menu .popover .row,
+#_desktop_top_menu .top-menu .popover .col-xs-12,
+#_desktop_top_menu .top-menu .popover .col-sm-12,
+#_desktop_top_menu .top-menu .popover .col-md-12 {
+    width: 100% !important;
+    float: none !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+}
+
+/* 5. СПИСОК ПОДКАТЕГОРИЙ (UL) */
+#_desktop_top_menu .top-menu .popover ul {
+    display: block !important;
+    margin: 0 !important;
+    padding: 10px 0 !important;
+    width: 100% !important;
+    list-style: none !important;
+}
+
+/* 6. ЭЛЕМЕНТЫ (LI) */
+#_desktop_top_menu .top-menu .popover ul li {
+    width: 100% !important;
+    display: block !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    float: none !important;
+}
+
+/* 7. ССЫЛКИ ПОДКАТЕГОРИЙ (Дизайн) */
+#_desktop_top_menu .top-menu .popover ul li a {
+    display: block !important;
+    padding: 10px 20px !important;
+    font-size: 14px !important;
+    color: #333 !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    border-bottom: 1px solid #f5f5f5 !important;
+    background: transparent !important; /* Убираем бежевый фон, если он был */
+    width: 100% !important;
+    line-height: 1.4 !important;
+}
+
+/* Ховер эффект для ссылок внутри */
+#_desktop_top_menu .top-menu .popover ul li a:hover {
+    background-color: #fcf8e8 !important; /* Бежевый фон при наведении */
+    color: #6b4027 !important;
+    text-decoration: none !important;
+}
+
+/* 8. СКРЫВАЕМ ЛИШНЕЕ */
+/* Скрываем заголовки категорий, если они дублируются как ссылки */
+#_desktop_top_menu .top-menu .popover .menu-title {
+    display: none !important;
+}
+/* Скрываем картинки */
+#_desktop_top_menu .top-menu .popover img {
+    display: none !important;
+}
+
+#_desktop_top_menu .top-menu > li:not(:has(.popover)) > a::after {
+    display: none !important;
+    content: none !important;
+}
+
+#_desktop_top_menu .top-menu > li:nth-last-child(-n+3) > a::after {
+    display: none !important; 
+    content: none !important;
+}
