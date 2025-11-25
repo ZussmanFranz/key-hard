@@ -14,3 +14,4 @@ python-slugify==8.0.1
 soupsieve==2.8
 typing_extensions==4.15.0
 urllib3==2.5.0
+prestapyt
