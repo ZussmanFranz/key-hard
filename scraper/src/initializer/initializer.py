@@ -1,3 +1,4 @@
+import re
 import sys
 import os
 import json
@@ -5,6 +6,7 @@ import logging
 import urllib3
 import requests
 import threading
+from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
 from typing import Dict, List, Optional, Any
@@ -491,6 +493,52 @@ class Initializer:
                 )
                 return None
 
+    def update_stock_available(self, product_id: int, quantity: int = 1) -> bool:
+        """
+        Updates the stock quantity for a product.
+
+        Parameters:
+            product_id  ID of the product in PrestaShop
+            quantity    New quantity to set (default 1)
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # First, find the stock_available ID for this product
+            search_opt = {"filter[id_product]": product_id, "limit": 1}
+            result = self.prestashop.get("stock_availables", options=search_opt)
+            
+            stock_data = result.get("stock_availables")
+            if isinstance(stock_data, dict):
+                stock_item = stock_data.get("stock_available")
+            else:
+                stock_item = None
+
+            if stock_item:
+                if isinstance(stock_item, list):
+                    stock_id = int(stock_item[0]["attrs"]["id"])
+                else:
+                    stock_id = int(stock_item["attrs"]["id"])
+                
+                # Now get the full XML for this stock item to update it
+                stock_xml = self.prestashop.get("stock_availables", resource_id=stock_id)
+                
+                # Update quantity
+                stock_xml["stock_available"]["quantity"] = quantity
+                
+                # Send update
+                self.prestashop.edit("stock_availables", stock_xml)
+                # logger.info(f"Updated stock for product {product_id} to {quantity}")
+                return True
+            else:
+                logger.warning(f"No stock_available record found for product {product_id}")
+                return False
+
+        except Exception as e:
+            logger.error(f"Failed to update stock for product {product_id}: {e}")
+            return False
+
     def create_product(self, product: Dict) -> Optional[int]:
         """
         Creates a single product in Prestashop using requests directly to handle 500 responses.
@@ -520,17 +568,23 @@ class Initializer:
                     )
                 return None
 
-            price_str = (
-                product.get("price", {})
-                .get("current", "0")
-                .replace(" zł", "")
-                .replace(",", ".")
-                .replace("\u00a0", "")
-            )
-            try:
-                price = float(price_str) if price_str else 0.0
-            except ValueError:
+            # Fix Price Parsing
+            raw_price = product.get("price", {}).get("current", "0")
+            # Replace comma with dot for float parsing
+            normalized_price = raw_price.replace(",", ".").replace(" ", "")
+            # Extract number using regex (supports 36.00, 36.00zł, etc)
+            match = re.search(r"(\d+(\.\d+)?)", normalized_price)
+            
+            if match:
+                try:
+                    price = float(match.group(1))
+                except ValueError:
+                    price = 0.0
+            else:
                 price = 0.0
+            
+            if price == 0.0:
+                 logger.warning(f"Price is 0.0 for product {product.get('product_name')} (Raw: '{raw_price}')")
 
             # Reference / SKU
             reference = product.get("display_code", "")
@@ -549,29 +603,60 @@ class Initializer:
             # Features
             product_features_xml = ""
 
+            # Helper to add feature
+            def add_feature(name, val):
+                if not val: return ""
+                f_id_local = self.get_or_create_feature(name)
+                if f_id_local:
+                    v_id_local = self.get_or_create_feature_value(f_id_local, str(val))
+                    if v_id_local:
+                        return f"<product_feature><id>{f_id_local}</id><id_feature_value>{v_id_local}</id_feature_value></product_feature>"
+                return ""
+
             # 1. Author as Feature
             author = product.get("product_author")
-            if author:
-                f_id = self.get_or_create_feature("Autor")
-                if f_id:
-                    v_id = self.get_or_create_feature_value(f_id, author)
-                    if v_id:
-                        product_features_xml += f"<product_feature><id>{f_id}</id><id_feature_value>{v_id}</id_feature_value></product_feature>"
-
-            # 2. Attributes as Features
+            product_features_xml += add_feature("Autor", author)
+            
+            # 2. Specific requested features
+            # "Tłumacz", "Kod produktu", "Liczba stron", "Rok wydania", "Wydawnictwo", "Wysokość", "Oprawa", "Stan książki"
+            
+            # Explicitly add specific attributes even if they duplicate standard fields
+            product_features_xml += add_feature("Wydawnictwo", publisher_name)
+            product_features_xml += add_feature("Kod produktu", reference)
+            
+            # Add other attributes
             for key, value in attributes.items():
-                if key.lower() in ["wydawnictwo", "waga"]:
-                    continue
+                if key.lower() == "wydawnictwo": continue # Already added above explicitly
+                
+                # Normalize key to display name
+                feature_name_map = {
+                    "liczba_stron": "Liczba stron",
+                    "rok_wydania": "Rok wydania",
+                    "wysokość": "Wysokość",
+                    "oprawa": "Oprawa",
+                    "stan_książki": "Stan książki",
+                    "tłumacz": "Tłumacz"
+                }
+                
+                display_name = feature_name_map.get(key.lower(), key.replace("_", " ").capitalize())
+                product_features_xml += add_feature(display_name, value)
 
-                feature_name = key.replace("_", " ").capitalize()
-
-                f_id = self.get_or_create_feature(feature_name)
-                if f_id:
-                    v_id = self.get_or_create_feature_value(f_id, str(value))
-                    if v_id:
-                        product_features_xml += f"<product_feature><id>{f_id}</id><id_feature_value>{v_id}</id_feature_value></product_feature>"
 
             description = self._build_product_description(product)
+            
+            # "Nowość" (New) Tag Logic
+            # PrestaShop considers a product "New" based on date_add.
+            # If tag "Nowość" exists -> use current time.
+            # If not -> use older time (e.g. 30 days ago) to prevent "New" label.
+            tags = product.get("tags", [])
+            is_new = "Nowość" in tags or "nowość" in tags
+            
+            now = datetime.now()
+            if is_new:
+                date_add = now.strftime("%Y-%m-%d %H:%M:%S")
+            else:
+                # Set to 30 days ago
+                date_add = (now - timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
 
             # XML construction
             def escape_xml(text):
@@ -611,6 +696,7 @@ class Initializer:
         <reference>{escape_xml(reference)}</reference>
         <active>1</active>
         <state>1</state>
+        <date_add>{date_add}</date_add>
         <id_category_default>{prestashop_category_id}</id_category_default>
         <id_manufacturer>{manufacturer_id}</id_manufacturer>
         <associations>
@@ -657,6 +743,10 @@ class Initializer:
                     self.created_products.append(int(prestashop_product_id))
 
                 self._add_product_images(int(prestashop_product_id), product)
+                
+                # Update Stock Quantity to 1
+                self.update_stock_available(int(prestashop_product_id), 1)
+                
                 return int(prestashop_product_id)
             else:
                 logger.warning(
@@ -692,15 +782,19 @@ class Initializer:
             parts.append(product["description"])
 
         if product.get("display_code"):
-            parts.append(f"\nKod produktu: {product['display_code']}")
+            parts.append(f"<p><strong>Kod produktu:</strong> {product['display_code']}</p>")
 
-        if product.get("attributes"):
-            parts.append("\nAtrybuty:")
-            for key, value in product["attributes"].items():
-                parts.append(f"  {key}: {value}")
-
-        if product.get("tags"):
-            parts.append(f"\nTagi: {', '.join(product['tags'])}")
+        # Shipping Info
+        shipping_info = product.get("shipping_info", {})
+        shippings = shipping_info.get("shippings", [])
+        if shippings:
+            parts.append("<h3>Wysyłka</h3>")
+            parts.append("<ul>")
+            for ship in shippings:
+                name = ship.get("name", "")
+                price_gross = ship.get("cost_gross", "")
+                parts.append(f"<li>{name}: {price_gross}</li>")
+            parts.append("</ul>")
 
         return "\n".join(parts)
 
@@ -759,7 +853,9 @@ class Initializer:
             return False
 
     def create_products(
-        self, limit: Optional[int] = None, max_workers: int = 8
+        self,
+        limit: Optional[int] = None,
+        max_workers: int = 8,
     ) -> bool:
         """
         Creates products in Prestashop using multithreading.
