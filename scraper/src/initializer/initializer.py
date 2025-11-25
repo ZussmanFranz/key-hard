@@ -7,6 +7,7 @@ import urllib3
 import requests
 import threading
 import subprocess
+import random
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
@@ -856,8 +857,10 @@ class Initializer:
                 self._add_product_images(int(prestashop_product_id), product)
                 self._associate_product_carriers(int(prestashop_product_id), product)
 
-                # Update Stock Quantity to 1
-                self.update_stock_available(int(prestashop_product_id), 1)
+                # Update Stock Quantity to random number (1-10)
+                self.update_stock_available(
+                    int(prestashop_product_id), random.randint(1, 10)
+                )
 
                 return int(prestashop_product_id)
             else:
