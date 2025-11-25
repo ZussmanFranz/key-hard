@@ -198,41 +198,9 @@ class Initializer:
             logger.error(f"Failed to load products: {e}")
             return False
 
-
-    def flatten_categories(self, categories: List[Dict], parent_id: int = 0) -> List[Dict]:
-        '''
-        Flattens nested categories tree into a list of dictionaries 
-        with parent information for hierarchical creation.
-
-        Parameters:
-            categories  list of category dictionaries (potentially nested)
-            parent_id   ID of parent category in Prestashop (0 for root)
-
-        Returns:
-            Flattened list of categories with parent_id information
-        '''
-        flattened = []
-        
-        for cat in categories:
-            cat_copy = {
-                "source_id": cat["id"],
-                "name": cat["name"],
-                "parent_id": parent_id
-            }
-            flattened.append(cat_copy)
-            
-            # Recursively flatten children
-            if cat.get("children"):
-                # Note: parent_id will be set after this category is created in Prestashop
-                child_flattened = self.flatten_categories(cat["children"], parent_id=cat["id"])
-                flattened.extend(child_flattened)
-        
-        return flattened
-
-
     def create_category(self, category: Dict, parent_id: int = 0) -> Optional[int]:
-        '''
-        Creates a single category in Prestashop.
+        """
+        Creates a single category in Prestashop using prestapyt.
 
         Parameters:
             category    dictionary with category data
@@ -240,264 +208,475 @@ class Initializer:
 
         Returns:
             New Prestashop category ID if successful, None otherwise
-        '''
+        """
         try:
-            # Build XML payload - PrestaShop requires XML in request body, but returns JSON
-            # Note: PrestaShop stores multilingual content with language IDs (1 for Polish, 2 for English)
-            xml_payload = f"""<?xml version="1.0" encoding="UTF-8"?>
-<prestashop>
-    <category>
-        <name>
-            <language id="1">{category.get("name")}</language>
-        </name>
-        <link_rewrite>
-            <language id="1">{self._slugify(category.get("name", ""))}</language>
-        </link_rewrite>
-        <active>1</active>
-        <id_parent>{parent_id}</id_parent>
-    </category>
-</prestashop>"""
-            
-            response = requests.post(
-                f"{self.api_url}/categories",
-                params={"ws_key": self.api_key, "output_format": "JSON"},
-                data=xml_payload.encode('utf-8'),
-                headers=self.get_auth_headers(),
-                timeout=10,
-                verify=False
-            )
-            
-            logger.info(f"POST {self.api_url}/categories - Status: {response.status_code}, Headers: {dict(response.headers)}, Body: {response.text[:200]}")
-            
-            # PrestaShop returns HTTP 500 with PHP Notices but still creates the resource
-            # Check if category data is in response regardless of status code
-            if response.text:
-                try:
-                    response_data = response.json()
-                    prestashop_id = response_data.get("category", {}).get("id")
-                    
-                    # If we got a category ID, the creation was successful
-                    if prestashop_id:
-                        source_id = category.get("id")  # Categories have 'id' field, not 'source_id'
-                        
-                        # Store mapping between source and Prestashop IDs
-                        if source_id:
-                            self.category_id_map[source_id] = prestashop_id
-                        
-                        logger.info(f"Created category '{category.get('name')}' (source_id: {source_id}, prestashop_id: {prestashop_id})")
-                        self.created_categories.append(prestashop_id)
-                        return prestashop_id
-                    else:
-                        logger.warning(f"No ID in response for category '{category.get('name')}'")
-                except Exception as parse_err:
-                    logger.warning(f"Could not parse response for category '{category.get('name')}': {parse_err}")
+            # Prepare category data structure for PrestaShop
+            # We need to construct the dictionary that matches PrestaShop's schema
+            # Using language ID 1 (Polish) as default
+
+            category_schema = {
+                "category": {
+                    "name": {
+                        "language": {
+                            "attrs": {"id": "1"},
+                            "value": category.get("name"),
+                        }
+                    },
+                    "link_rewrite": {
+                        "language": {
+                            "attrs": {"id": "1"},
+                            "value": slugify(category.get("name", "")),
+                        }
+                    },
+                    "active": "1",
+                    "id_parent": str(parent_id),
+                    # description can be added here if available
+                }
+            }
+
+            # Add to PrestaShop
+            response = self.prestashop.add("categories", category_schema)
+
+            # Extract ID from response
+            # response is usually a dict like {'prestashop': {'category': {'id': '123', ...}}}
+            prestashop_id = response.get("prestashop", {}).get("category", {}).get("id")
+
+            if prestashop_id:
+                source_id = category.get("id")
+
+                if source_id:
+                    self.category_id_map[source_id] = int(prestashop_id)
+
+                logger.info(
+                    f"Created category '{category.get('name')}' (source_id: {source_id}, prestashop_id: {prestashop_id})"
+                )
+                self.created_categories.append(int(prestashop_id))
+                return int(prestashop_id)
             else:
-                logger.warning(f"Empty response body for category '{category.get('name')}'")
-            
-            # If we got here, something went wrong
-            logger.error(f"Failed to create category '{category.get('name')}'. Status: {response.status_code}. Response: {response.text}")
-            self.failed_operations.append({
-                "type": "category",
-                "data": category,
-                "status_code": response.status_code,
-                "error": response.text
-            })
+                logger.warning(
+                    f"No ID in response for category '{category.get('name')}'"
+                )
+                return None
+
+        except PrestaShopWebServiceError as e:
+            logger.error(
+                f"PrestaShop API Error creating category '{category.get('name')}': {e}"
+            )
+            self.failed_operations.append(
+                {"type": "category", "data": category, "error": str(e)}
+            )
             return None
-                
         except Exception as e:
-            logger.error(f"Error while creating category '{category.get('name')}': {type(e).__name__}: {e}")
-            self.failed_operations.append({
-                "type": "category",
-                "data": category,
-                "error": str(e)
-            })
+            logger.error(
+                f"Error while creating category '{category.get('name')}': {type(e).__name__}: {e}"
+            )
+            self.failed_operations.append(
+                {"type": "category", "data": category, "error": str(e)}
+            )
             return None
-
-
-    def _slugify(self, text: str) -> str:
-        '''
-        Simple slugify function to create URL-friendly names.
-        
-        Parameters:
-            text input text to slugify
-            
-        Returns:
-            Slugified text
-        '''
-        import re
-        # Convert to lowercase and replace spaces/special chars with hyphens
-        slug = re.sub(r'[^\w\s-]', '', text.lower())
-        slug = re.sub(r'[-\s]+', '-', slug)
-        return slug.strip('-')
-
 
     def create_categories(self) -> bool:
-        '''
+        """
         Creates all categories in Prestashop maintaining the hierarchical structure.
-        
+
         Returns:
             True if all categories created successfully, False otherwise
-        '''
+        """
         if not self.categories:
             logger.warning("No categories to create. Load categories first.")
             return False
-        
+
         logger.info("--- Started creating categories ---")
-        
-        # First pass: create root-level categories
+
         root_categories = self.categories
-        
+
         def create_categories_recursive(cats: List[Dict], parent_id: int = 0) -> bool:
-            '''Recursively creates categories maintaining hierarchy'''
+            """Recursively creates categories maintaining hierarchy"""
             all_success = True
-            
+
             for cat in cats:
                 prestashop_id = self.create_category(cat, parent_id)
-                
+
                 if prestashop_id is None:
                     all_success = False
-                    # Continue with other categories even if one fails
                     continue
-                
-                # Recursively create children
+
                 if cat.get("children"):
-                    child_success = create_categories_recursive(cat["children"], prestashop_id)
+                    child_success = create_categories_recursive(
+                        cat["children"], prestashop_id
+                    )
                     if not child_success:
                         all_success = False
-            
+
             return all_success
-        
-        success = create_categories_recursive(root_categories)
-        
+
+        success = create_categories_recursive(root_categories, 2)
+
         if success:
-            logger.info(f"--- Successfully created {len(self.created_categories)} categories ---")
+            logger.info(
+                f"--- Successfully created {len(self.created_categories)} categories ---"
+            )
         else:
-            logger.warning(f"--- Created {len(self.created_categories)} categories with {len(self.failed_operations)} failures ---")
-        
+            logger.warning(
+                f"--- Created {len(self.created_categories)} categories with {len(self.failed_operations)} failures ---"
+            )
+
         return success
 
+    def get_or_create_manufacturer(self, name: str) -> Optional[int]:
+        """
+        Gets existing manufacturer ID or creates a new one.
+
+        Parameters:
+            name Name of the manufacturer
+
+        Returns:
+            Manufacturer ID or None if failed
+        """
+        if not name:
+            return None
+
+        if name in self.manufacturers_cache:
+            return self.manufacturers_cache[name]
+
+        try:
+            search_opt = {"filter[name]": name, "limit": 1}
+            result = self.prestashop.get("manufacturers", options=search_opt)
+
+            logger.debug(
+                f"Search manufacturer '{name}' result type: {type(result)}, content: {result}"
+            )
+
+            manufacturers_data = result.get("manufacturers")
+            if isinstance(manufacturers_data, dict):
+                manufacturers = manufacturers_data.get("manufacturer")
+            else:
+                manufacturers = None
+
+            if manufacturers:
+                if isinstance(manufacturers, list):
+                    m_id = int(manufacturers[0]["attrs"]["id"])
+                else:
+                    m_id = int(manufacturers["attrs"]["id"])
+                self.manufacturers_cache[name] = m_id
+                return m_id
+
+            # Create new
+            manufacturer_schema = {"manufacturer": {"name": name, "active": "1"}}
+            response = self.prestashop.add("manufacturers", manufacturer_schema)
+            logger.debug(
+                f"Add manufacturer response type: {type(response)}, content: {response}"
+            )
+
+            if isinstance(response, str):
+                logger.error(
+                    f"PrestaShop returned string instead of dict for add manufacturer: {response}"
+                )
+                return None
+
+            m_id = int(response.get("prestashop", {}).get("manufacturer", {}).get("id"))
+
+            self.manufacturers_cache[name] = m_id
+            logger.info(f"Created manufacturer: {name} (ID: {m_id})")
+            return m_id
+
+        except Exception as e:
+            logger.error(f"Error managing manufacturer '{name}': {e}")
+            return None
+
+    def get_or_create_feature(self, name: str) -> Optional[int]:
+        """
+        Gets existing feature ID or creates a new one.
+        """
+        if not name:
+            return None
+
+        if name in self.features_cache:
+            return self.features_cache[name]
+
+        try:
+            search_opt = {"filter[name]": name, "limit": 1}
+            result = self.prestashop.get("product_features", options=search_opt)
+
+            features_data = result.get("product_features")
+            if isinstance(features_data, dict):
+                features = features_data.get("product_feature")
+            else:
+                features = None
+
+            if features:
+                if isinstance(features, list):
+                    f_id = int(features[0]["attrs"]["id"])
+                else:
+                    f_id = int(features["attrs"]["id"])
+                self.features_cache[name] = f_id
+                return f_id
+
+            # Create new
+            feature_schema = {
+                "product_feature": {
+                    "name": {"language": {"attrs": {"id": "1"}, "value": name}},
+                    "position": "0",
+                }
+            }
+            response = self.prestashop.add("product_features", feature_schema)
+            f_id = int(
+                response.get("prestashop", {}).get("product_feature", {}).get("id")
+            )
+
+            self.features_cache[name] = f_id
+            logger.info(f"Created feature: {name} (ID: {f_id})")
+            return f_id
+
+        except Exception as e:
+            logger.error(f"Error managing feature '{name}': {e}")
+            return None
+
+    def get_or_create_feature_value(self, feature_id: int, value: str) -> Optional[int]:
+        """
+        Gets existing feature value ID or creates a new one.
+        """
+        if not feature_id or not value:
+            return None
+
+        # Check cache
+        if feature_id not in self.feature_values_cache:
+            self.feature_values_cache[feature_id] = {}
+
+        if value in self.feature_values_cache[feature_id]:
+            return self.feature_values_cache[feature_id][value]
+
+        try:
+            search_opt = {
+                "filter[id_feature]": str(feature_id),
+                "filter[value]": value,
+                "limit": 1,
+            }
+            result = self.prestashop.get("product_feature_values", options=search_opt)
+
+            values_data = result.get("product_feature_values")
+            if isinstance(values_data, dict):
+                values = values_data.get("product_feature_value")
+            else:
+                values = None
+
+            if values:
+                if isinstance(values, list):
+                    v_id = int(values[0]["attrs"]["id"])
+                else:
+                    v_id = int(values["attrs"]["id"])
+                self.feature_values_cache[feature_id][value] = v_id
+                return v_id
+
+            # Create new
+            value_schema = {
+                "product_feature_value": {
+                    "id_feature": str(feature_id),
+                    "value": {"language": {"attrs": {"id": "1"}, "value": value}},
+                    "custom": "0",
+                }
+            }
+            response = self.prestashop.add("product_feature_values", value_schema)
+            v_id = int(
+                response.get("prestashop", {})
+                .get("product_feature_value", {})
+                .get("id")
+            )
+
+            self.feature_values_cache[feature_id][value] = v_id
+            return v_id
+
+        except Exception as e:
+            logger.error(
+                f"Error managing feature value '{value}' for feature {feature_id}: {e}"
+            )
+            return None
 
     def create_product(self, product: Dict) -> Optional[int]:
-        '''
-        Creates a single product in Prestashop.
+        """
+        Creates a single product in Prestashop using requests directly to handle 500 responses.
 
         Parameters:
             product dictionary with product data from scraper
 
         Returns:
             New Prestashop product ID if successful, None otherwise
-        '''
+        """
         try:
-            # Get Prestashop category ID from mapping
             source_category_id = product.get("category_id")
             prestashop_category_id = self.category_id_map.get(source_category_id)
-            
+
             if not prestashop_category_id:
-                logger.warning(f"No category mapping found for product '{product.get('product_name')}'. Skipping...")
-                self.failed_operations.append({
-                    "type": "product",
-                    "data": product,
-                    "error": "Category mapping not found"
-                })
+                logger.warning(
+                    f"No category mapping found for product '{product.get('product_name')}'. Skipping..."
+                )
+                self.failed_operations.append(
+                    {
+                        "type": "product",
+                        "data": product,
+                        "error": "Category mapping not found",
+                    }
+                )
                 return None
-            
-            # Parse price
-            price_str = product.get("price", {}).get("current", "0").replace(" zł", "").replace(",", ".")
+
+            price_str = (
+                product.get("price", {})
+                .get("current", "0")
+                .replace(" zł", "")
+                .replace(",", ".")
+                .replace("\u00a0", "")
+            )
             try:
                 price = float(price_str) if price_str else 0.0
             except ValueError:
                 price = 0.0
-            
-            # Build product description from available fields
+
+            # Reference / SKU
+            reference = product.get("display_code", "")
+
+            # Manufacturer (Publisher)
+            manufacturer_id = ""
+            attributes = product.get("attributes", {})
+            publisher_name = attributes.get("wydawnictwo") or attributes.get(
+                "Wydawnictwo"
+            )
+            if publisher_name:
+                m_id = self.get_or_create_manufacturer(publisher_name)
+                if m_id:
+                    manufacturer_id = str(m_id)
+
+            # Features
+            product_features_xml = ""
+
+            # 1. Author as Feature
+            author = product.get("product_author")
+            if author:
+                f_id = self.get_or_create_feature("Autor")
+                if f_id:
+                    v_id = self.get_or_create_feature_value(f_id, author)
+                    if v_id:
+                        product_features_xml += f"<product_feature><id>{f_id}</id><id_feature_value>{v_id}</id_feature_value></product_feature>"
+
+            # 2. Attributes as Features
+            for key, value in attributes.items():
+                if key.lower() in ["wydawnictwo", "waga"]:
+                    continue
+
+                feature_name = key.replace("_", " ").capitalize()
+
+                f_id = self.get_or_create_feature(feature_name)
+                if f_id:
+                    v_id = self.get_or_create_feature_value(f_id, str(value))
+                    if v_id:
+                        product_features_xml += f"<product_feature><id>{f_id}</id><id_feature_value>{v_id}</id_feature_value></product_feature>"
+
             description = self._build_product_description(product)
-            
+
+            # XML construction
             # Escape XML special characters
             def escape_xml(text):
                 if not text:
                     return ""
-                return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&apos;")
-            
-            # Build XML payload for Prestashop REST API with multilingual fields
+                return (
+                    str(text)
+                    .replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace('"', "&quot;")
+                    .replace("'", "&apos;")
+                )
+
             xml_payload = f"""<?xml version="1.0" encoding="UTF-8"?>
 <prestashop>
     <product>
         <name>
             <language id="1">{escape_xml(product.get("product_name", "Unknown"))}</language>
         </name>
-        <description_short>
-            <language id="1">{escape_xml(description[:200] if description else "")}</language>
-        </description_short>
+        <link_rewrite>
+            <language id="1">{escape_xml(slugify(product.get("product_name", "Unknown")))}</language>
+        </link_rewrite>
         <description>
             <language id="1">{escape_xml(description)}</language>
         </description>
+        <description_short>
+            <language id="1">{escape_xml(description[:200] if description else "")}</language>
+        </description_short>
         <price>{price}</price>
+        <id_tax_rules_group>1</id_tax_rules_group>
+        <minimal_quantity>1</minimal_quantity>
+        <available_for_order>1</available_for_order>
+        <show_price>1</show_price>
+        <id_shop_default>1</id_shop_default>
+        <indexed>1</indexed>
+        <reference>{escape_xml(reference)}</reference>
         <active>1</active>
+        <state>1</state>
         <id_category_default>{prestashop_category_id}</id_category_default>
+        <id_manufacturer>{manufacturer_id}</id_manufacturer>
         <associations>
             <categories>
                 <category>
                     <id>{prestashop_category_id}</id>
                 </category>
             </categories>
+            <product_features>
+                {product_features_xml}
+            </product_features>
         </associations>
     </product>
 </prestashop>"""
-            
-            response = requests.post(
-                f"{self.api_url}/products",
-                params={"ws_key": self.api_key, "output_format": "JSON"},
-                data=xml_payload.encode('utf-8'),
-                headers=self.get_auth_headers(),
-                timeout=15,
-                verify=False
+
+            url = f"{self.api_url}/products"
+
+            params = {"ws_key": self.api_key, "output_format": "JSON"}
+            headers = {"Content-Type": "application/xml"}
+
+            response = self.prestashop.client.post(
+                url, params=params, data=xml_payload.encode("utf-8"), headers=headers
             )
-            
-            # PrestaShop returns HTTP 500 with PHP Warnings but still creates the resource
-            # Check if product data is in response regardless of status code
-            if response.text:
+
+            if response.status_code in [200, 201] or response.text:
                 try:
                     response_data = response.json()
-                    prestashop_product_id = response_data.get("product", {}).get("id")
-                    
-                    # If we got a product ID, the creation was successful
-                    if prestashop_product_id:
-                        source_product_id = product.get("id")
-                        logger.info(f"Created product '{product.get('product_name')}' (source_id: {source_product_id}, prestashop_id: {prestashop_product_id})")
-                        self.created_products.append(prestashop_product_id)
-                        
-                        # Try to add product images
-                        self._add_product_images(prestashop_product_id, product)
-                        
-                        return prestashop_product_id
-                    else:
-                        logger.warning(f"Could not extract product ID from response for '{product.get('product_name')}'")
-                except Exception as parse_err:
-                    logger.warning(f"Could not parse response for product '{product.get('product_name')}': {parse_err}")
-            else:
-                logger.warning(f"Empty response body for product '{product.get('product_name')}'")
-            
-            # If we got here, something went wrong
-            logger.error(f"Failed to create product '{product.get('product_name')}'. Status: {response.status_code}. Response: {response.text}")
-            self.failed_operations.append({
-                "type": "product",
-                "data": product,
-                "status_code": response.status_code,
-                "error": response.text
-            })
-            return None
-                
-        except Exception as e:
-            logger.error(f"Error while creating product '{product.get('product_name')}': {type(e).__name__}: {e}")
-            self.failed_operations.append({
-                "type": "product",
-                "data": product,
-                "error": str(e)
-            })
+                    # It might be nested in 'product' or 'products'
+                    product_node = response_data.get("product")
+                    if product_node:
+                        prestashop_product_id = product_node.get("id")
+                        if prestashop_product_id:
+                            source_product_id = product.get("id")
+                            logger.info(
+                                f"Created product '{product.get('product_name')}' (source_id: {source_product_id}, prestashop_id: {prestashop_product_id})"
+                            )
+                            self.created_products.append(int(prestashop_product_id))
+
+                            self._add_product_images(
+                                int(prestashop_product_id), product
+                            )
+                            return int(prestashop_product_id)
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to parse response JSON for product '{product.get('product_name')}': {e}"
+                    )
+                    pass
+
+            if response.status_code not in [200, 201]:
+                logger.warning(
+                    f"Failed to create product '{product.get('product_name')}' (Status: {response.status_code}). Response: {response.text[:200]}"
+                )
+
             return None
 
+        except Exception as e:
+            logger.error(
+                f"Error while creating product '{product.get('product_name')}': {type(e).__name__}: {e}"
+            )
+            self.failed_operations.append(
+                {"type": "product", "data": product, "error": str(e)}
+            )
+            return None
 
     def _build_product_description(self, product: Dict) -> str:
-        '''
+        """
         Builds product description from available fields.
 
         Parameters:
