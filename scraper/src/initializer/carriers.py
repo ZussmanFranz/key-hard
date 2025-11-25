@@ -117,7 +117,7 @@ class CarrierManager:
             sql = f"INSERT INTO ps_delivery (id_carrier, id_range_price, id_range_weight, id_zone, price) VALUES ({carrier_id}, 0, {range_id}, {zone_id}, {cost});"
             
             cmd = [
-                "docker", "exec", "agrochowski_db",
+                "sudo", "docker", "exec", "agrochowski_db",
                 "mysql", "-u", "prestashop", "-pprestashop_password", "prestashop",
                 "-e", sql
             ]
@@ -137,7 +137,7 @@ class CarrierManager:
             group_sql = f"INSERT INTO ps_carrier_group (id_carrier, id_group) VALUES {', '.join(group_sql_values)};"
             
             cmd_group = [
-                "docker", "exec", "agrochowski_db",
+                "sudo", "docker", "exec", "agrochowski_db",
                 "mysql", "-u", "prestashop", "-pprestashop_password", "prestashop",
                 "-e", group_sql
             ]
@@ -153,7 +153,7 @@ class CarrierManager:
             zone_sql = f"INSERT INTO ps_carrier_zone (id_carrier, id_zone) VALUES ({carrier_id}, {zone_id});"
             
             cmd_zone = [
-                "docker", "exec", "agrochowski_db",
+                "sudo", "docker", "exec", "agrochowski_db",
                 "mysql", "-u", "prestashop", "-pprestashop_password", "prestashop",
                 "-e", zone_sql
             ]

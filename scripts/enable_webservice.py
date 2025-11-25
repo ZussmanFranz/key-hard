@@ -91,7 +91,7 @@ SELECT 'deliveries', 'DELETE', @id_account;
     # Build the docker exec command
     # We use subprocess.run with input=sql_commands to pipe the SQL to mysql
     cmd = [
-        "docker", "exec", "-i", CONTAINER,
+        "sudo", "docker", "exec", "-i", CONTAINER,
         "mysql", f"-u{DB_USER}", f"-p{DB_PASS}", DB_NAME
     ]
 

@@ -76,7 +76,7 @@ try:
     print("--- ROZPOCZĘCIE TESTU ---")
 
     # 1. Dodanie 10 produktów (LOGIKA Z POPRZEDNIEGO KROKU)
-    categories = ["65-ksiazki", "68-muzyka"]
+    categories = ["15-ksiazki", "18-muzyka"]
     products_added = 0
 
     for category in categories:
@@ -93,10 +93,10 @@ try:
                 driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", product)
                 product.find_element(By.CSS_SELECTOR, "a.thumbnail").click()
 
-                # qty = random.randint(1, 3)
-                # qty_input = wait.until(EC.element_to_be_clickable((By.ID, "quantity_wanted")))
-                # qty_input.clear()
-                # qty_input.send_keys(str(qty))
+                qty = random.randint(1, 2)
+                qty_input = wait.until(EC.element_to_be_clickable((By.ID, "quantity_wanted")))
+                qty_input.send_keys(Keys.CONTROL + "a")
+                qty_input.send_keys(str(qty))
 
                 add_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button.add-to-cart")))
                 add_btn.click()

@@ -791,7 +791,7 @@ class Initializer:
             <language id="1">{escape_xml(description[:200] if description else "")}</language>
         </description_short>
         <price>{price}</price>
-        <id_tax_rules_group>1</id_tax_rules_group>
+        <id_tax_rules_group>3</id_tax_rules_group>
         <minimal_quantity>1</minimal_quantity>
         <available_for_order>1</available_for_order>
         <show_price>1</show_price>
@@ -859,7 +859,7 @@ class Initializer:
 
                 # Update Stock Quantity to random number (1-10)
                 self.update_stock_available(
-                    int(prestashop_product_id), random.randint(1, 10)
+                    int(prestashop_product_id), random.randint(3, 10)
                 )
 
                 return int(prestashop_product_id)
@@ -958,6 +958,7 @@ class Initializer:
                 sql = f"INSERT INTO ps_product_carrier (id_product, id_carrier_reference, id_shop) VALUES {', '.join(values)};"
 
                 cmd = [
+                    "sudo",
                     "docker",
                     "exec",
                     "agrochowski_db",

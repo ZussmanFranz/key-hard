@@ -358,7 +358,7 @@
     color: #6b4027; /* Коричневый текст */
 }
 .footer-newsletter-wrapper {
-    background-color: #fdfbf0;
+    background-color: #fcf8e8;
     padding: 40px 0;
     border-bottom: 1px solid #eaeaea;
 }
@@ -593,7 +593,7 @@
 #search_widget form input[type="text"] {
     position: relative !important;
     z-index: 1 !important;
-    width: 125% !important;
+    width: 100% !important;
     height: 100% !important;
     background: transparent !important;
     border: none !important;
@@ -771,4 +771,12 @@
 #_desktop_top_menu .top-menu > li:nth-last-child(-n+3) > a::after {
     display: none !important; 
     content: none !important;
+}
+
+#wrapper {
+ background-color: #fcf8e8; 
+ }
+ 
+ #footer {
+    padding-top: 0px;
 }
