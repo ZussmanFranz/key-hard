@@ -838,214 +838,162 @@ class Initializer:
 
         Returns:
             True if saved successfully, False otherwise
-        '''
+        """
         try:
             summary = self.get_summary()
-            
+
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(summary, f, ensure_ascii=False, indent=4)
                 logger.info(f"Operation summary saved to {path}")
                 return True
-                
+
         except Exception as e:
             logger.error(f"Failed to save summary: {e}")
             return False
 
-
     def remove_all_products(self) -> bool:
-        '''
-        Removes all products from PrestaShop.
+        """
+        Removes all products from PrestaShop using prestapyt.
 
         Returns:
             True if successful, False otherwise
-        '''
+        """
         try:
             logger.info("--- Started removing all products ---")
-            
-            # Get all products (without display=full to avoid PHP notices)
-            response = requests.get(
-                f"{self.api_url}/products",
-                params={"ws_key": self.api_key, "output_format": "JSON"},
-                headers=self.get_auth_headers(),
-                timeout=15,
-                verify=False
-            )
-            
-            if response.status_code != 200:
-                logger.error(f"Failed to fetch products list. Status: {response.status_code}")
-                return False
-            
-            products_data = response.json()
-            
-            # Handle different response formats
-            if isinstance(products_data, dict):
-                products = products_data.get("products", [])
-            else:
-                products = products_data if isinstance(products_data, list) else []
-            
-            # Ensure products is a list of dicts, not a list of primitive types
-            if not products or not isinstance(products, list):
-                logger.info("No products to remove")
+
+            # Get list of products
+            # This returns a list of dicts: [{'attrs': {'id': '1', 'xlink:href': '...'}}, ...]
+            try:
+                products_wrapper = self.prestashop.get("products")
+            except PrestaShopWebServiceError as e:
+                logger.info(f"Failed to get products (maybe none exist): {e}")
                 return True
-            
-            # Filter out non-dict entries (some API responses may have mixed types)
-            products = [p for p in products if isinstance(p, dict)]
-            
+
+            products = products_wrapper.get("products", {}).get("product", [])
+
+            # Normalize to list if single item
+            if isinstance(products, dict):
+                products = [products]
+
             if not products:
                 logger.info("No products to remove")
                 return True
-            
+
             logger.info(f"Found {len(products)} products to remove")
-            
+
             removed_count = 0
             failed_count = 0
-            
-            for product in products:
-                if not isinstance(product, dict):
-                    logger.warning(f"Skipping invalid product entry: {product}")
-                    continue
-                
-                product_id = product.get("id")
-                product_name = product.get("name", "Unknown")
-                
+
+            for product_ref in products:
+                product_id = product_ref["attrs"]["id"]
                 try:
-                    delete_response = requests.delete(
-                        f"{self.api_url}/products/{product_id}",
-                        params={"ws_key": self.api_key},
-                        headers=self.get_auth_headers(),
-                        timeout=10,
-                        verify=False
-                    )
-                    
-                    # Accept 200, 204, or 500 with valid response (PHP notices)
-                    if delete_response.status_code in [200, 204]:
-                        logger.info(f"Removed product {product_id}: {product_name}")
-                        removed_count += 1
-                    elif delete_response.status_code == 500:
-                        # Check if deletion was successful despite HTTP 500
-                        try:
-                            response_body = delete_response.json()
-                            # If no errors or only PHP notices, consider it a success
-                            if "errors" not in response_body or not response_body.get("errors"):
-                                logger.info(f"Removed product {product_id}: {product_name}")
-                                removed_count += 1
-                            else:
-                                logger.warning(f"Failed to remove product {product_id} ({product_name}). Errors: {response_body.get('errors')}")
-                                failed_count += 1
-                        except:
-                            logger.warning(f"Failed to remove product {product_id} ({product_name}). Status: 500")
-                            failed_count += 1
-                    else:
-                        logger.warning(f"Failed to remove product {product_id} ({product_name}). Status: {delete_response.status_code}")
-                        failed_count += 1
+                    self.prestashop.delete("products", resource_ids=product_id)
+                    logger.info(f"Removed product {product_id}")
+                    removed_count += 1
                 except Exception as e:
-                    logger.error(f"Error removing product {product_id}: {e}")
+                    logger.warning(f"Failed to remove product {product_id}: {e}")
                     failed_count += 1
-            
-            logger.info(f"--- Finished removing products. Removed: {removed_count}, Failed: {failed_count} ---")
+
+            logger.info(
+                f"--- Finished removing products. Removed: {removed_count}, Failed: {failed_count} ---"
+            )
             return failed_count == 0
-            
+
         except Exception as e:
             logger.error(f"Error while removing products: {type(e).__name__}: {e}")
             return False
 
-
-    
     def remove_all_categories(self) -> bool:
-        '''
-        Removes all non-basic categories from PrestaShop.
-        Only keeps the root category (id=1) and its direct children (Baza/Root).
+        """
+        Removes all non-basic categories from PrestaShop using prestapyt.
+        Only keeps the root category (id=1) and Home (id=2).
 
         Returns:
             True if successful, False otherwise
-        '''
+        """
         try:
             logger.info("--- Started removing all non-basic categories ---")
-            
-            # Get all categories with full details
-            response = requests.get(
-                f"{self.api_url}/categories",
-                params={"ws_key": self.api_key, "output_format": "JSON", "display": "full"},
-                headers=self.get_auth_headers(),
-                timeout=15,
-                verify=False
-            )
-            
-            # Accept 200 or 500 (PrestaShop returns 500 with valid JSON due to PHP notices)
-            if response.status_code not in [200, 500]:
-                logger.error(f"Failed to fetch categories list. Status: {response.status_code}")
-                return False
-            
+
             try:
-                categories_data = response.json()
-            except:
-                logger.error("Failed to parse categories response as JSON")
-                return False
-            
-            categories = categories_data.get("categories", [])
-            
+                categories_wrapper = self.prestashop.get("categories")
+            except PrestaShopWebServiceError as e:
+                logger.info(f"Failed to get categories: {e}")
+                return True
+
+            categories = categories_wrapper.get("categories", {}).get("category", [])
+
+            if isinstance(categories, dict):
+                categories = [categories]
+
             if not categories:
                 logger.info("No categories to remove")
                 return True
-            
-            logger.info(f"Found {len(categories)} categories to evaluate")
-            
-            # Sort by level_depth descending to remove leaf categories first
-            categories_sorted = sorted(categories, key=lambda x: int(x.get("level_depth", 0)), reverse=True)
-            
+
+            try:
+                categories_full = self.prestashop.get(
+                    "categories", options={"display": "full"}
+                )
+                categories_list = categories_full.get("categories", {}).get(
+                    "category", []
+                )
+                if isinstance(categories_list, dict):
+                    categories_list = [categories_list]
+            except Exception as e:
+                logger.error(f"Failed to fetch full categories details: {e}")
+                return False
+
+            logger.info(f"Found {len(categories_list)} categories to evaluate")
+
+            # Sort by level_depth descending
+            categories_sorted = sorted(
+                categories_list,
+                key=lambda x: int(x.get("level_depth", 0)),
+                reverse=True,
+            )
+
             removed_count = 0
             failed_count = 0
             skipped_count = 0
-            
+
             for category in categories_sorted:
                 category_id = category.get("id")
-                category_name = category.get("name", [{}])[0].get("value", "Unknown") if isinstance(category.get("name"), list) else category.get("name", "Unknown")
+                # Handle name: it can be a list of languages or a single dict
+                name_field = category.get("name", {}).get("language", {})
+                if isinstance(name_field, list):
+                    # just take the first one or search
+                    category_name = name_field[0].get("value", "Unknown")
+                else:
+                    category_name = name_field.get("value", "Unknown")
+
                 level_depth = int(category.get("level_depth", 0))
-                
-                # Skip root category (id=1) ONLY - compare as strings and ints
-                if str(category_id) == "1" or category_id == 1:
-                    logger.info(f"Skipping root category (id=1)")
+
+                # Keep Root (1) and Home (2)
+                if str(category_id) in ["1", "2"]:
+                    logger.info(
+                        f"Skipping protected category {category_id} ({category_name})"
+                    )
                     skipped_count += 1
                     continue
-                
-                # Remove ALL other categories (including those with level_depth=0)
+
                 try:
-                    delete_response = requests.delete(
-                        f"{self.api_url}/categories/{category_id}",
-                        params={"ws_key": self.api_key},
-                        headers=self.get_auth_headers(),
-                        timeout=10,
-                        verify=False
+                    self.prestashop.delete("categories", resource_ids=category_id)
+                    logger.info(
+                        f"Removed category {category_id}: {category_name} (level_depth={level_depth})"
                     )
-                    
-                    # Accept 200, 204, or 500 with valid response (PHP notices)
-                    if delete_response.status_code in [200, 204]:
-                        logger.info(f"Removed category {category_id}: {category_name} (level_depth={level_depth})")
-                        removed_count += 1
-                    elif delete_response.status_code == 500:
-                        # Check if deletion was successful despite HTTP 500
-                        try:
-                            response_body = delete_response.json()
-                            # If no errors or only PHP notices, consider it a success
-                            if "errors" not in response_body or not response_body.get("errors"):
-                                logger.info(f"Removed category {category_id}: {category_name} (level_depth={level_depth})")
-                                removed_count += 1
-                            else:
-                                logger.warning(f"Failed to remove category {category_id} ({category_name}). Errors: {response_body.get('errors')}")
-                                failed_count += 1
-                        except:
-                            logger.warning(f"Failed to remove category {category_id} ({category_name}). Status: 500")
-                            failed_count += 1
-                    else:
-                        logger.warning(f"Failed to remove category {category_id} ({category_name}). Status: {delete_response.status_code}")
-                        failed_count += 1
+                    removed_count += 1
                 except Exception as e:
-                    logger.error(f"Error removing category {category_id}: {e}")
+                    logger.warning(
+                        f"Failed to remove category {category_id} ({category_name}): {e}"
+                    )
                     failed_count += 1
-            
-            logger.info(f"--- Finished removing categories. Removed: {removed_count}, Skipped: {skipped_count}, Failed: {failed_count} ---")
+
+            logger.info(
+                f"--- Finished removing categories. Removed: {removed_count}, Skipped: {skipped_count}, Failed: {failed_count} ---"
+            )
             return failed_count == 0
-            
+
         except Exception as e:
-            logger.error(f"Error while removing all categories: {type(e).__name__}: {e}")
+            logger.error(
+                f"Error while removing all categories: {type(e).__name__}: {e}"
+            )
             return False
