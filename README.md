@@ -28,12 +28,11 @@ It is based on an **e-commerce shop** selling software keys: [agrochowski.pl](ht
 2. Start prestashop docker container using
 
     ```bash
-    cd config
-    docker-compose up -d
-    cd ../
+    ./config/restart_docker.sh
+    ./config/load_config.sh
     ```
 
-    After that, [Prestashop page](https://localhost:8443/pl) will be available after that.
+    After that, [Prestashop page](https://localhost:8443/pl) will be after that.
 
 3. Manage parsing and initializing, run
 
@@ -78,8 +77,6 @@ key-hard
 |   └───src     # Source code of scraper
 |   └───results # Scraping results
 |       └───images # Sample images
-|
-└───scripts # Useful scripts for developers
 |
 └───tests # Web tests
 
