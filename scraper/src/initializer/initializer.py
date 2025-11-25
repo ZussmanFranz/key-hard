@@ -4,15 +4,17 @@ import json
 import logging
 import urllib3
 import requests
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import urlparse
 from typing import Dict, List, Optional, Any
 from prestapyt import PrestaShopWebServiceDict, PrestaShopWebServiceError
 import logging_config
 from slugify import slugify
 
-# Disable SSL warnings as we are using self-signed certs
+# Disable SSL warnings as we might be using self-signed certs
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# TODO: Fix this using proper package structure
 # Add parent directory to path to import logging_config from scraper/src
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -70,8 +72,11 @@ class Initializer:
         self.features_cache = {}  # name -> id
         self.feature_values_cache = {}  # feature_id -> {value -> id}
 
+        # Thread safety locks
+        self.lock = threading.Lock()
+        self.cache_lock = threading.Lock()
+
         # Initialize Prestashop Webservice
-        # PrestaShopWebServiceDict does not support verify=False argument directly in older versions,
         try:
             session = requests.Session()
             session.verify = False
@@ -321,176 +326,173 @@ class Initializer:
 
     def get_or_create_manufacturer(self, name: str) -> Optional[int]:
         """
-        Gets existing manufacturer ID or creates a new one.
-
-        Parameters:
-            name Name of the manufacturer
-
-        Returns:
-            Manufacturer ID or None if failed
+        Gets existing manufacturer ID or creates a new one. Thread-safe.
         """
         if not name:
             return None
 
-        if name in self.manufacturers_cache:
-            return self.manufacturers_cache[name]
+        with self.cache_lock:
+            if name in self.manufacturers_cache:
+                return self.manufacturers_cache[name]
 
-        try:
-            search_opt = {"filter[name]": name, "limit": 1}
-            result = self.prestashop.get("manufacturers", options=search_opt)
+            try:
+                # Search for existing
+                search_opt = {"filter[name]": name, "limit": 1}
+                result = self.prestashop.get("manufacturers", options=search_opt)
 
-            logger.debug(
-                f"Search manufacturer '{name}' result type: {type(result)}, content: {result}"
-            )
-
-            manufacturers_data = result.get("manufacturers")
-            if isinstance(manufacturers_data, dict):
-                manufacturers = manufacturers_data.get("manufacturer")
-            else:
-                manufacturers = None
-
-            if manufacturers:
-                if isinstance(manufacturers, list):
-                    m_id = int(manufacturers[0]["attrs"]["id"])
+                manufacturers_data = result.get("manufacturers")
+                if isinstance(manufacturers_data, dict):
+                    manufacturers = manufacturers_data.get("manufacturer")
                 else:
-                    m_id = int(manufacturers["attrs"]["id"])
+                    manufacturers = None
+
+                if manufacturers:
+                    if isinstance(manufacturers, list):
+                        m_id = int(manufacturers[0]["attrs"]["id"])
+                    else:
+                        m_id = int(manufacturers["attrs"]["id"])
+                    self.manufacturers_cache[name] = m_id
+                    return m_id
+
+                # Create new
+                manufacturer_schema = {"manufacturer": {"name": name, "active": "1"}}
+                response = self.prestashop.add("manufacturers", manufacturer_schema)
+
+                if isinstance(response, str):
+                    logger.error(
+                        f"PrestaShop returned string instead of dict for add manufacturer: {response}"
+                    )
+                    return None
+
+                m_id = int(
+                    response.get("prestashop", {}).get("manufacturer", {}).get("id")
+                )
+
                 self.manufacturers_cache[name] = m_id
+                logger.info(f"Created manufacturer: {name} (ID: {m_id})")
                 return m_id
 
-            # Create new
-            manufacturer_schema = {"manufacturer": {"name": name, "active": "1"}}
-            response = self.prestashop.add("manufacturers", manufacturer_schema)
-            logger.debug(
-                f"Add manufacturer response type: {type(response)}, content: {response}"
-            )
-
-            if isinstance(response, str):
-                logger.error(
-                    f"PrestaShop returned string instead of dict for add manufacturer: {response}"
-                )
+            except Exception as e:
+                logger.error(f"Error managing manufacturer '{name}': {e}")
                 return None
-
-            m_id = int(response.get("prestashop", {}).get("manufacturer", {}).get("id"))
-
-            self.manufacturers_cache[name] = m_id
-            logger.info(f"Created manufacturer: {name} (ID: {m_id})")
-            return m_id
-
-        except Exception as e:
-            logger.error(f"Error managing manufacturer '{name}': {e}")
-            return None
 
     def get_or_create_feature(self, name: str) -> Optional[int]:
         """
-        Gets existing feature ID or creates a new one.
+        Gets existing feature ID or creates a new one. Thread-safe.
         """
         if not name:
             return None
 
-        if name in self.features_cache:
-            return self.features_cache[name]
+        with self.cache_lock:
+            if name in self.features_cache:
+                return self.features_cache[name]
 
-        try:
-            search_opt = {"filter[name]": name, "limit": 1}
-            result = self.prestashop.get("product_features", options=search_opt)
+            try:
+                search_opt = {"filter[name]": name, "limit": 1}
+                result = self.prestashop.get("product_features", options=search_opt)
 
-            features_data = result.get("product_features")
-            if isinstance(features_data, dict):
-                features = features_data.get("product_feature")
-            else:
-                features = None
-
-            if features:
-                if isinstance(features, list):
-                    f_id = int(features[0]["attrs"]["id"])
+                features_data = result.get("product_features")
+                if isinstance(features_data, dict):
+                    features = features_data.get("product_feature")
                 else:
-                    f_id = int(features["attrs"]["id"])
+                    features = None
+
+                if features:
+                    if isinstance(features, list):
+                        f_id = int(features[0]["attrs"]["id"])
+                    else:
+                        f_id = int(features["attrs"]["id"])
+                    self.features_cache[name] = f_id
+                    return f_id
+
+                # Create new
+                feature_schema = {
+                    "product_feature": {
+                        "name": {"language": {"attrs": {"id": "1"}, "value": name}},
+                        "position": "0",
+                    }
+                }
+                response = self.prestashop.add("product_features", feature_schema)
+                f_id = int(
+                    response.get("prestashop", {}).get("product_feature", {}).get("id")
+                )
+
                 self.features_cache[name] = f_id
+                logger.info(f"Created feature: {name} (ID: {f_id})")
                 return f_id
 
-            # Create new
-            feature_schema = {
-                "product_feature": {
-                    "name": {"language": {"attrs": {"id": "1"}, "value": name}},
-                    "position": "0",
-                }
-            }
-            response = self.prestashop.add("product_features", feature_schema)
-            f_id = int(
-                response.get("prestashop", {}).get("product_feature", {}).get("id")
-            )
-
-            self.features_cache[name] = f_id
-            logger.info(f"Created feature: {name} (ID: {f_id})")
-            return f_id
-
-        except Exception as e:
-            logger.error(f"Error managing feature '{name}': {e}")
-            return None
+            except Exception as e:
+                logger.error(f"Error managing feature '{name}': {e}")
+                return None
 
     def get_or_create_feature_value(self, feature_id: int, value: str) -> Optional[int]:
         """
-        Gets existing feature value ID or creates a new one.
+        Gets existing feature value ID or creates a new one. Thread-safe.
         """
         if not feature_id or not value:
             return None
 
-        # Check cache
-        if feature_id not in self.feature_values_cache:
-            self.feature_values_cache[feature_id] = {}
+        with self.cache_lock:
+            # Check cache
+            if feature_id not in self.feature_values_cache:
+                self.feature_values_cache[feature_id] = {}
 
-        if value in self.feature_values_cache[feature_id]:
-            return self.feature_values_cache[feature_id][value]
+            if value in self.feature_values_cache[feature_id]:
+                return self.feature_values_cache[feature_id][value]
 
-        try:
-            search_opt = {
-                "filter[id_feature]": str(feature_id),
-                "filter[value]": value,
-                "limit": 1,
-            }
-            result = self.prestashop.get("product_feature_values", options=search_opt)
+            try:
+                # Search for existing value for this feature
+                search_opt = {
+                    "filter[id_feature]": str(feature_id),
+                    "filter[value]": value,
+                    "limit": 1,
+                }
+                result = self.prestashop.get(
+                    "product_feature_values", options=search_opt
+                )
 
-            values_data = result.get("product_feature_values")
-            if isinstance(values_data, dict):
-                values = values_data.get("product_feature_value")
-            else:
-                values = None
-
-            if values:
-                if isinstance(values, list):
-                    v_id = int(values[0]["attrs"]["id"])
+                values_data = result.get("product_feature_values")
+                if isinstance(values_data, dict):
+                    values = values_data.get("product_feature_value")
                 else:
-                    v_id = int(values["attrs"]["id"])
+                    values = None
+
+                if values:
+                    if isinstance(values, list):
+                        v_id = int(values[0]["attrs"]["id"])
+                    else:
+                        v_id = int(values["attrs"]["id"])
+                    self.feature_values_cache[feature_id][value] = v_id
+                    return v_id
+
+                # Create new
+                value_schema = {
+                    "product_feature_value": {
+                        "id_feature": str(feature_id),
+                        "value": {"language": {"attrs": {"id": "1"}, "value": value}},
+                        "custom": "0",
+                    }
+                }
+                response = self.prestashop.add("product_feature_values", value_schema)
+                v_id = int(
+                    response.get("prestashop", {})
+                    .get("product_feature_value", {})
+                    .get("id")
+                )
+
                 self.feature_values_cache[feature_id][value] = v_id
                 return v_id
 
-            # Create new
-            value_schema = {
-                "product_feature_value": {
-                    "id_feature": str(feature_id),
-                    "value": {"language": {"attrs": {"id": "1"}, "value": value}},
-                    "custom": "0",
-                }
-            }
-            response = self.prestashop.add("product_feature_values", value_schema)
-            v_id = int(
-                response.get("prestashop", {})
-                .get("product_feature_value", {})
-                .get("id")
-            )
-
-            self.feature_values_cache[feature_id][value] = v_id
-            return v_id
-
-        except Exception as e:
-            logger.error(
-                f"Error managing feature value '{value}' for feature {feature_id}: {e}"
-            )
-            return None
+            except Exception as e:
+                logger.error(
+                    f"Error managing feature value '{value}' for feature {feature_id}: {e}"
+                )
+                return None
 
     def create_product(self, product: Dict) -> Optional[int]:
         """
         Creates a single product in Prestashop using requests directly to handle 500 responses.
+        Designed to be run in a thread.
 
         Parameters:
             product dictionary with product data from scraper
@@ -506,13 +508,14 @@ class Initializer:
                 logger.warning(
                     f"No category mapping found for product '{product.get('product_name')}'. Skipping..."
                 )
-                self.failed_operations.append(
-                    {
-                        "type": "product",
-                        "data": product,
-                        "error": "Category mapping not found",
-                    }
-                )
+                with self.lock:
+                    self.failed_operations.append(
+                        {
+                            "type": "product",
+                            "data": product,
+                            "error": "Category mapping not found",
+                        }
+                    )
                 return None
 
             price_str = (
@@ -622,63 +625,64 @@ class Initializer:
 </prestashop>"""
 
             url = f"{self.api_url}/products"
-
             params = {"ws_key": self.api_key, "output_format": "JSON"}
             headers = {"Content-Type": "application/xml"}
 
+            # Using the shared session (self.prestashop.client)
+            # requests.Session is thread-safe
             response = self.prestashop.client.post(
                 url, params=params, data=xml_payload.encode("utf-8"), headers=headers
             )
 
+            prestashop_product_id = None
+
             if response.status_code in [200, 201] or response.text:
                 try:
                     response_data = response.json()
-                    # It might be nested in 'product' or 'products'
                     product_node = response_data.get("product")
                     if product_node:
                         prestashop_product_id = product_node.get("id")
-                        if prestashop_product_id:
-                            source_product_id = product.get("id")
-                            logger.info(
-                                f"Created product '{product.get('product_name')}' (source_id: {source_product_id}, prestashop_id: {prestashop_product_id})"
-                            )
-                            self.created_products.append(int(prestashop_product_id))
-
-                            self._add_product_images(
-                                int(prestashop_product_id), product
-                            )
-                            return int(prestashop_product_id)
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to parse response JSON for product '{product.get('product_name')}': {e}"
-                    )
+                except Exception:
                     pass
 
-            if response.status_code not in [200, 201]:
+            if prestashop_product_id:
+                source_product_id = product.get("id")
+                logger.info(
+                    f"Created product '{product.get('product_name')}' (source_id: {source_product_id}, prestashop_id: {prestashop_product_id})"
+                )
+
+                with self.lock:
+                    self.created_products.append(int(prestashop_product_id))
+
+                self._add_product_images(int(prestashop_product_id), product)
+                return int(prestashop_product_id)
+            else:
                 logger.warning(
                     f"Failed to create product '{product.get('product_name')}' (Status: {response.status_code}). Response: {response.text[:200]}"
                 )
-
-            return None
+                with self.lock:
+                    self.failed_operations.append(
+                        {
+                            "type": "product",
+                            "data": product,
+                            "error": f"API Error: {response.status_code}",
+                        }
+                    )
+                return None
 
         except Exception as e:
             logger.error(
                 f"Error while creating product '{product.get('product_name')}': {type(e).__name__}: {e}"
             )
-            self.failed_operations.append(
-                {"type": "product", "data": product, "error": str(e)}
-            )
+            with self.lock:
+                self.failed_operations.append(
+                    {"type": "product", "data": product, "error": str(e)}
+                )
             return None
 
     def _build_product_description(self, product: Dict) -> str:
         """
         Builds product description from available fields.
-
-        Parameters:
-            product dictionary with product data
-
-        Returns:
-            Formatted product description string
         """
         parts = []
 
@@ -711,11 +715,13 @@ class Initializer:
             if image_url.startswith("/"):
                 image_url = "https://agrochowski.pl" + image_url
 
-            import requests
+            # Download image (thread-safe, new request)
+            img_response = requests.get(image_url, verify=False, timeout=15)
 
-            img_response = requests.get(image_url, verify=False, timeout=10)
             if img_response.status_code == 200:
-                filename = os.path.basename(image_url) or "image.jpg"
+                # Parse URL to get clean filename without query parameters
+                parsed_url = urlparse(image_url)
+                filename = os.path.basename(parsed_url.path) or "image.jpg"
 
                 # Use requests to upload image
                 url = f"{self.api_url}/images/products/{prestashop_product_id}"
@@ -750,37 +756,54 @@ class Initializer:
             )
             return False
 
-    def create_products(self, limit: Optional[int] = None) -> bool:
+    def create_products(
+        self, limit: Optional[int] = None, max_workers: int = 8
+    ) -> bool:
         """
-        Creates all products in Prestashop.
+        Creates products in Prestashop using multithreading.
 
         Parameters:
-            limit optional maximum number of products to create
+            limit       optional maximum number of products to create
+            max_workers number of concurrent threads (default 8)
 
         Returns:
-            True if all products created successfully, False otherwise
+            True if all attempted products created successfully
         """
         if not self.products:
             logger.warning("No products to create. Load products first.")
             return False
 
-        logger.info("--- Started creating products ---")
-
         products_to_create = self.products[:limit] if limit else self.products
         total = len(products_to_create)
+
+        logger.info(
+            f"--- Started creating {total} products with {max_workers} workers ---"
+        )
+
         created_count = 0
         failed_count = 0
 
-        for idx, product in enumerate(products_to_create, 1):
-            result = self.create_product(product)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Map future to product for tracking
+            future_to_product = {
+                executor.submit(self.create_product, p): p for p in products_to_create
+            }
 
-            if result:
-                created_count += 1
-            else:
-                failed_count += 1
+            completed = 0
+            for future in as_completed(future_to_product):
+                completed += 1
+                try:
+                    result = future.result()
+                    if result:
+                        created_count += 1
+                    else:
+                        failed_count += 1
+                except Exception as e:
+                    failed_count += 1
+                    logger.error(f"Thread generated an exception: {e}")
 
-            if idx % 100 == 0:
-                logger.info(f"Progress: {idx}/{total} products processed")
+                if completed % 50 == 0:
+                    logger.info(f"Progress: {completed}/{total} products processed")
 
         logger.info(
             f"--- Finished creating products. Created: {created_count}, Failed: {failed_count} ---"
@@ -850,6 +873,9 @@ class Initializer:
 
             removed_count = 0
             failed_count = 0
+
+            # Parallel deletion could also be done, but let's keep it simple for now
+            # as removal is usually one-off.
 
             for product_ref in products:
                 product_id = product_ref["attrs"]["id"]
