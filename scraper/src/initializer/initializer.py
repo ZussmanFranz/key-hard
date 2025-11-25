@@ -1,32 +1,44 @@
-import requests
-import json
 import sys
 import os
+import json
 import logging
+import urllib3
+import requests
 from typing import Dict, List, Optional, Any
+from prestapyt import PrestaShopWebServiceDict, PrestaShopWebServiceError
+import logging_config
+from slugify import slugify
 
+# Disable SSL warnings as we are using self-signed certs
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# TODO: Fix this using proper package structure
 # Add parent directory to path to import logging_config from scraper/src
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import logging_config
 
 logging_config.setup_logging()
 logger = logging.getLogger(__name__)
 
 
 class Initializer:
-    '''
-    Initializer class that collects data about categories and products 
+    """
+    Initializer class that collects data about categories and products
     from scraper results and sends them to Prestashop 1.7.8 using REST API webservice.
-    
+
     This class handles:
     - Loading categories and products from JSON files
-    - Authentication with Prestashop API
+    - Authentication with Prestashop API (via prestapyt)
     - Creating categories and products in the Prestashop store
-    '''
+    """
 
-    def __init__(self, api_url, api_key, categories_path="scraper/results/categories.json", 
-                 products_path="scraper/results/products.json"):
-        '''
+    def __init__(
+        self,
+        api_url,
+        api_key,
+        categories_path="scraper/results/categories.json",
+        products_path="scraper/results/products.json",
+    ):
+        """
         Initializes the Initializer object for Prestashop API communication.
 
         Parameters:
@@ -53,105 +65,105 @@ class Initializer:
         self.created_products = []
         self.failed_operations = []
 
+        # Caches to reduce API calls
+        self.manufacturers_cache = {}  # name -> id
+        self.features_cache = {}  # name -> id
+        self.feature_values_cache = {}  # feature_id -> {value -> id}
+
+        # Initialize Prestashop Webservice
+        # PrestaShopWebServiceDict does not support verify=False argument directly in older versions,
+        try:
+            session = requests.Session()
+            session.verify = False
+            self.prestashop = PrestaShopWebServiceDict(
+                self.api_url, self.api_key, session=session
+            )
+        except Exception as e:
+            logger.error(f"Failed to initialize PrestaShopWebServiceDict: {e}")
+            raise
 
     @property
     def api_url(self):
         return self._api_url
-    
+
     @api_url.setter
     def api_url(self, api_url):
-        if not api_url or type(api_url) != str or not api_url.strip():
+        if not api_url or type(api_url) is not str or not api_url.strip():
             raise ValueError("api_url must be a non-empty string")
-        self._api_url = api_url.rstrip('/')
-
+        self._api_url = api_url.rstrip("/")
 
     @property
     def api_key(self):
         return self._api_key
-    
+
     @api_key.setter
     def api_key(self, api_key):
-        if not api_key or type(api_key) != str or not api_key.strip():
+        if not api_key or type(api_key) is not str or not api_key.strip():
             raise ValueError("api_key must be a non-empty string")
         self._api_key = api_key
-
 
     @property
     def categories_path(self):
         return self._categories_path
-    
+
     @categories_path.setter
     def categories_path(self, categories_path):
-        if not categories_path or type(categories_path) != str or not categories_path.strip():
+        if (
+            not categories_path
+            or type(categories_path) is not str
+            or not categories_path.strip()
+        ):
             raise ValueError("categories_path must be a non-empty string")
         self._categories_path = categories_path
-
 
     @property
     def products_path(self):
         return self._products_path
-    
+
     @products_path.setter
     def products_path(self, products_path):
-        if not products_path or type(products_path) != str or not products_path.strip():
+        if (
+            not products_path
+            or type(products_path) is not str
+            or not products_path.strip()
+        ):
             raise ValueError("products_path must be a non-empty string")
         self._products_path = products_path
 
-
-    def get_auth_headers(self) -> Dict[str, str]:
-        '''
-        Returns authentication headers for Prestashop API requests.
-        
-        Returns:
-            Dictionary with authorization header
-        '''
-        return {
-            "Content-Type": "application/xml",
-            "Accept": "application/json"
-        }
-
-
     def test_connection(self) -> bool:
-        '''
+        """
         Tests the connection to Prestashop API.
-        
+
         Returns:
             True if connection successful, False otherwise
-        '''
+        """
         try:
-            response = requests.get(
-                f"{self.api_url}/categories",
-                params={"ws_key": self.api_key, "output_format": "JSON"},
-                headers=self.get_auth_headers(),
-                timeout=10,
-                verify=False
-            )
-            
-            if response.ok:
-                logger.info("Successfully connected to Prestashop API")
-                return True
-            else:
-                logger.error(f"Failed to connect to Prestashop API. Status code: {response.status_code}")
-                return False
-                
-        except requests.RequestException as e:
+            # Try to fetch languages as a lightweight test
+            self.prestashop.get("languages", options={"limit": 1})
+            logger.info("Successfully connected to Prestashop API")
+            return True
+        except PrestaShopWebServiceError as e:
+            logger.error(f"Failed to connect to Prestashop API: {e}")
+            return False
+        except Exception as e:
             logger.error(f"Connection error to Prestashop API: {e}")
             return False
 
-
     def load_categories(self) -> bool:
-        '''
+        """
         Loads categories from JSON file.
-        
+
         Returns:
             True if loaded successfully, False otherwise
-        '''
+        """
         try:
             with open(self.categories_path, "r", encoding="utf-8") as f:
                 self.categories = json.load(f)
-                logger.info(f"Loaded {len(self.categories)} top-level categories from {self.categories_path}")
+                logger.info(
+                    f"Loaded {len(self.categories)} top-level categories from {self.categories_path}"
+                )
                 return True
-                
+
         except FileNotFoundError:
             logger.error(f"Categories file not found: {self.categories_path}")
             return False
