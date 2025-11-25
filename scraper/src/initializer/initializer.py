@@ -508,7 +508,7 @@ class Initializer:
             # First, find the stock_available ID for this product
             search_opt = {"filter[id_product]": product_id, "limit": 1}
             result = self.prestashop.get("stock_availables", options=search_opt)
-            
+
             stock_data = result.get("stock_availables")
             if isinstance(stock_data, dict):
                 stock_item = stock_data.get("stock_available")
@@ -520,19 +520,23 @@ class Initializer:
                     stock_id = int(stock_item[0]["attrs"]["id"])
                 else:
                     stock_id = int(stock_item["attrs"]["id"])
-                
+
                 # Now get the full XML for this stock item to update it
-                stock_xml = self.prestashop.get("stock_availables", resource_id=stock_id)
-                
+                stock_xml = self.prestashop.get(
+                    "stock_availables", resource_id=stock_id
+                )
+
                 # Update quantity
                 stock_xml["stock_available"]["quantity"] = quantity
-                
+
                 # Send update
                 self.prestashop.edit("stock_availables", stock_xml)
                 # logger.info(f"Updated stock for product {product_id} to {quantity}")
                 return True
             else:
-                logger.warning(f"No stock_available record found for product {product_id}")
+                logger.warning(
+                    f"No stock_available record found for product {product_id}"
+                )
                 return False
 
         except Exception as e:
@@ -574,7 +578,7 @@ class Initializer:
             normalized_price = raw_price.replace(",", ".").replace(" ", "")
             # Extract number using regex (supports 36.00, 36.00zł, etc)
             match = re.search(r"(\d+(\.\d+)?)", normalized_price)
-            
+
             if match:
                 try:
                     price = float(match.group(1))
@@ -582,9 +586,11 @@ class Initializer:
                     price = 0.0
             else:
                 price = 0.0
-            
+
             if price == 0.0:
-                 logger.warning(f"Price is 0.0 for product {product.get('product_name')} (Raw: '{raw_price}')")
+                logger.warning(
+                    f"Price is 0.0 for product {product.get('product_name')} (Raw: '{raw_price}')"
+                )
 
             # Reference / SKU
             reference = product.get("display_code", "")
@@ -605,7 +611,8 @@ class Initializer:
 
             # Helper to add feature
             def add_feature(name, val):
-                if not val: return ""
+                if not val:
+                    return ""
                 f_id_local = self.get_or_create_feature(name)
                 if f_id_local:
                     v_id_local = self.get_or_create_feature_value(f_id_local, str(val))
@@ -616,18 +623,19 @@ class Initializer:
             # 1. Author as Feature
             author = product.get("product_author")
             product_features_xml += add_feature("Autor", author)
-            
+
             # 2. Specific requested features
             # "Tłumacz", "Kod produktu", "Liczba stron", "Rok wydania", "Wydawnictwo", "Wysokość", "Oprawa", "Stan książki"
-            
+
             # Explicitly add specific attributes even if they duplicate standard fields
             product_features_xml += add_feature("Wydawnictwo", publisher_name)
             product_features_xml += add_feature("Kod produktu", reference)
-            
+
             # Add other attributes
             for key, value in attributes.items():
-                if key.lower() == "wydawnictwo": continue # Already added above explicitly
-                
+                if key.lower() == "wydawnictwo":
+                    continue  # Already added above explicitly
+
                 # Normalize key to display name
                 feature_name_map = {
                     "liczba_stron": "Liczba stron",
@@ -635,22 +643,23 @@ class Initializer:
                     "wysokość": "Wysokość",
                     "oprawa": "Oprawa",
                     "stan_książki": "Stan książki",
-                    "tłumacz": "Tłumacz"
+                    "tłumacz": "Tłumacz",
                 }
-                
-                display_name = feature_name_map.get(key.lower(), key.replace("_", " ").capitalize())
+
+                display_name = feature_name_map.get(
+                    key.lower(), key.replace("_", " ").capitalize()
+                )
                 product_features_xml += add_feature(display_name, value)
 
-
             description = self._build_product_description(product)
-            
+
             # "Nowość" (New) Tag Logic
             # PrestaShop considers a product "New" based on date_add.
             # If tag "Nowość" exists -> use current time.
             # If not -> use older time (e.g. 30 days ago) to prevent "New" label.
             tags = product.get("tags", [])
             is_new = "Nowość" in tags or "nowość" in tags
-            
+
             now = datetime.now()
             if is_new:
                 date_add = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -743,10 +752,10 @@ class Initializer:
                     self.created_products.append(int(prestashop_product_id))
 
                 self._add_product_images(int(prestashop_product_id), product)
-                
+
                 # Update Stock Quantity to 1
                 self.update_stock_available(int(prestashop_product_id), 1)
-                
+
                 return int(prestashop_product_id)
             else:
                 logger.warning(
@@ -782,7 +791,9 @@ class Initializer:
             parts.append(product["description"])
 
         if product.get("display_code"):
-            parts.append(f"<p><strong>Kod produktu:</strong> {product['display_code']}</p>")
+            parts.append(
+                f"<p><strong>Kod produktu:</strong> {product['display_code']}</p>"
+            )
 
         # Shipping Info
         shipping_info = product.get("shipping_info", {})
