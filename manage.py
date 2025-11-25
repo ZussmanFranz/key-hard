@@ -8,21 +8,28 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "scripts"))
 from enable_webservice import enable_webservice
 
 
-def run_scraper():
+def get_base_cmd(use_uv):
+    """Returns the base command list for running Python scripts."""
+    if use_uv:
+        return ["uv", "run", "python"]
+    return [sys.executable]
+
+
+def run_scraper(use_uv):
     print("\n--- Starting Scraper ---")
-    cmd = ["uv", "run", "python", "scraper/src/parse.py"]
+    base_cmd = get_base_cmd(use_uv)
+    cmd = base_cmd + ["scraper/src/parse.py"]
     try:
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
         print(f"Scraper failed with exit code {e.returncode}")
     except FileNotFoundError:
-        print("Error: 'uv' command not found. Please ensure uv is installed.")
+        tool = "uv" if use_uv else "python"
+        print(f"Error: '{tool}' command not found.")
 
 
-def run_initializer(api_key):
+def run_initializer(api_key, use_uv):
     print("\n--- Starting Initializer ---")
-
-    api_url = "https://localhost:8443/api"
 
     print("Select initialization mode:")
     print("1. Standard (Append/Update)")
@@ -31,7 +38,8 @@ def run_initializer(api_key):
 
     choice = input("Enter choice [1-3]: ").strip()
 
-    cmd = ["uv", "run", "python", "scraper/src/initializer/main.py", api_key]
+    base_cmd = get_base_cmd(use_uv)
+    cmd = base_cmd + ["scraper/src/initializer/main.py", api_key]
 
     if choice == "2":
         cmd.extend(["--remove-categories", "--remove-products"])
@@ -66,8 +74,8 @@ def run_initializer(api_key):
 
 def reset_database():
     print("Resetting database auto-increment counters and clearing data...")
-    sql_products = "TRUNCATE TABLE ps_product; TRUNCATE TABLE ps_product_lang; TRUNCATE TABLE ps_product_shop; TRUNCATE TABLE ps_category_product; TRUNCATE TABLE ps_image; TRUNCATE TABLE ps_image_lang; TRUNCATE TABLE ps_image_shop; TRUNCATE TABLE ps_feature_product; TRUNCATE TABLE ps_feature_value; TRUNCATE TABLE ps_feature_value_lang;"
-    sql_categories = "DELETE FROM ps_category WHERE id_category > 2; ALTER TABLE ps_category AUTO_INCREMENT = 3;"
+    # SQL commands omitted for brevity as they are handled inside the container via docker exec
+    # The logic below calls docker directly which is environment agnostic regarding python/uv
 
     try:
         subprocess.run(
@@ -109,6 +117,14 @@ def reset_database():
 
 
 def main():
+    parser = argparse.ArgumentParser(description="PrestaShop Manager CLI")
+    parser.add_argument(
+        "--use-uv",
+        action="store_true",
+        help="Use 'uv run python' instead of the default 'python' interpreter.",
+    )
+    args = parser.parse_args()
+
     api_key = "e44a97fbf306a8059ab8d633a7e55e49"
 
     while True:
@@ -124,9 +140,9 @@ def main():
         choice = input("\nSelect an option: ").strip().lower()
 
         if choice == "1":
-            run_scraper()
+            run_scraper(args.use_uv)
         elif choice == "2":
-            run_initializer(api_key)
+            run_initializer(api_key, args.use_uv)
         elif choice == "3":
             confirm = input(
                 "Are you sure you want to TRUNCATE product tables? (y/n): "
