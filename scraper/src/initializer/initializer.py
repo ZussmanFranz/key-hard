@@ -9,6 +9,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urlparse
 from typing import Dict, List, Optional, Any
 from prestapyt import PrestaShopWebServiceDict, PrestaShopWebServiceError
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import logging_config
 from slugify import slugify
 
@@ -16,7 +19,6 @@ from slugify import slugify
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Add parent directory to path to import logging_config from scraper/src
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 logging_config.setup_logging()
 logger = logging.getLogger(__name__)
