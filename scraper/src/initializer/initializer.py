@@ -714,45 +714,57 @@ class Initializer:
 
         Returns:
             True if successful or no images, False if error occurred
-        '''
+        """
         try:
             image_url = product.get("thumbnail_high_res") or product.get("thumbnail")
-            
+
             if not image_url:
                 return True
-            
-            # Build XML payload for image
-            xml_payload = f"""<?xml version="1.0" encoding="UTF-8"?>
-<prestashop>
-    <image>
-        <id_product>{prestashop_product_id}</id_product>
-        <position>1</position>
-    </image>
-</prestashop>"""
-            
-            response = requests.post(
-                f"{self.api_url}/products/{prestashop_product_id}/images",
-                params={"ws_key": self.api_key, "output_format": "JSON"},
-                data=xml_payload.encode('utf-8'),
-                headers=self.get_auth_headers(),
-                timeout=15,
-                verify=False
-            )
-            
-            if response.ok:
-                logger.debug(f"Added image to product {prestashop_product_id}")
-                return True
+
+            if image_url.startswith("/"):
+                image_url = "https://agrochowski.pl" + image_url
+
+            import requests
+
+            img_response = requests.get(image_url, verify=False, timeout=10)
+            if img_response.status_code == 200:
+                filename = os.path.basename(image_url) or "image.jpg"
+
+                # Use requests to upload image
+                url = f"{self.api_url}/images/products/{prestashop_product_id}"
+                params = {"ws_key": self.api_key}
+
+                # Determine mime type (simple guess)
+                mime_type = "image/jpeg"
+                if filename.lower().endswith(".png"):
+                    mime_type = "image/png"
+                elif filename.lower().endswith(".gif"):
+                    mime_type = "image/gif"
+
+                files = {"image": (filename, img_response.content, mime_type)}
+
+                r = requests.post(url, params=params, files=files, verify=False)
+
+                if r.status_code in [200, 201]:
+                    logger.info(f"Added image to product {prestashop_product_id}")
+                    return True
+                else:
+                    logger.warning(
+                        f"Failed to upload image to product {prestashop_product_id}. Status: {r.status_code}, Response: {r.text}"
+                    )
+                    return False
             else:
-                logger.warning(f"Failed to add image to product {prestashop_product_id}. Status: {response.status_code}")
+                logger.warning(f"Failed to download image from {image_url}")
                 return False
-                
+
         except Exception as e:
-            logger.warning(f"Error while adding image to product {prestashop_product_id}: {e}")
+            logger.warning(
+                f"Error while adding image to product {prestashop_product_id}: {e}"
+            )
             return False
 
-
     def create_products(self, limit: Optional[int] = None) -> bool:
-        '''
+        """
         Creates all products in Prestashop.
 
         Parameters:
