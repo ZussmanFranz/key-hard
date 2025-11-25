@@ -69,7 +69,23 @@ SELECT 'product_feature_values', 'PUT', @id_account UNION ALL
 SELECT 'product_feature_values', 'DELETE', @id_account UNION ALL
 SELECT 'languages', 'GET', @id_account UNION ALL
 SELECT 'tax_rule_groups', 'GET', @id_account UNION ALL
-SELECT 'shops', 'GET', @id_account;
+SELECT 'shops', 'GET', @id_account UNION ALL
+SELECT 'carriers', 'GET', @id_account UNION ALL
+SELECT 'carriers', 'POST', @id_account UNION ALL
+SELECT 'carriers', 'PUT', @id_account UNION ALL
+SELECT 'carriers', 'DELETE', @id_account UNION ALL
+SELECT 'weight_ranges', 'GET', @id_account UNION ALL
+SELECT 'weight_ranges', 'POST', @id_account UNION ALL
+SELECT 'weight_ranges', 'PUT', @id_account UNION ALL
+SELECT 'weight_ranges', 'DELETE', @id_account UNION ALL
+SELECT 'price_ranges', 'GET', @id_account UNION ALL
+SELECT 'price_ranges', 'POST', @id_account UNION ALL
+SELECT 'price_ranges', 'PUT', @id_account UNION ALL
+SELECT 'price_ranges', 'DELETE', @id_account UNION ALL
+SELECT 'deliveries', 'GET', @id_account UNION ALL
+SELECT 'deliveries', 'POST', @id_account UNION ALL
+SELECT 'deliveries', 'PUT', @id_account UNION ALL
+SELECT 'deliveries', 'DELETE', @id_account;
 """
 
     # Build the docker exec command
