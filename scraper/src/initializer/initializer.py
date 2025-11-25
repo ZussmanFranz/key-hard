@@ -667,6 +667,98 @@ class Initializer:
                 # Set to 30 days ago
                 date_add = (now - timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
 
+            # Dimensions and Weight
+            # Default PrestaShop unit is usually cm and kg
+            # Source data "Wysokość": "180" -> likely mm. "Waga": "0.5" -> likely kg?
+
+            width = 0.0
+            height = 0.0
+            depth = 0.0
+            weight = 0.0
+
+            # Helper to parse float
+            def parse_float(val):
+                if not val:
+                    return 0.0
+                try:
+                    return float(
+                        str(val)
+                        .replace(",", ".")
+                        .replace(" ", "")
+                        .replace("mm", "")
+                        .replace("cm", "")
+                        .replace("kg", "")
+                        .replace("g", "")
+                    )
+                except ValueError:
+                    return 0.0
+
+            # Map attributes
+            condition = "new"  # Default
+            isbn = ""
+
+            for key, val in attributes.items():
+                k = key.lower()
+                v = parse_float(val)
+
+                if "wysoko" in k or "height" in k:
+                    if v > 50:
+                        height = v / 10.0
+                    else:
+                        height = v
+                elif "szeroko" in k or "width" in k:
+                    if v > 50:
+                        width = v / 10.0
+                    else:
+                        width = v
+                elif "głęboko" in k or "depth" in k or "grubo" in k:
+                    if v > 50:
+                        depth = v / 10.0
+                    else:
+                        depth = v
+                elif "waga" in k or "weight" in k:
+                    if v > 1000:
+                        weight = v / 1000.0
+                    else:
+                        weight = v
+                elif "stan" in k and "ksi" in k:  # stan_książki
+                    # If value implies used (digits 1-5 or words), set used
+                    # If contains "now" -> new
+                    val_lower = str(val).lower()
+                    if "now" in val_lower:
+                        condition = "new"
+                    else:
+                        condition = "used"
+                elif "isbn" in k:
+                    isbn = str(val).replace("-", "").strip()
+
+                # Default weight if missing (books usually ~0.3-0.5kg)
+            if weight == 0.0:
+                weight = 0.5
+
+            # Shipping Logic
+            shipping_info = product.get("shipping_info", {})
+            shippings_meta = {s["id"]: s for s in shipping_info.get("shippings", [])}
+            poland_costs = shipping_info.get("country2shipping", {}).get("179", [])
+
+            additional_shipping_cost = 0.0
+
+            # Calculate cheapest non-zero shipping for the "Additional Cost" field
+            if poland_costs:
+                costs = []
+                for c in poland_costs:
+                    try:
+                        cost = float(c.get("lowestCost", 0.0))
+                        # We usually want the cheapest *delivery*, not pickup (0.0)
+                        # unless pickup is the only option.
+                        if cost > 0.01:
+                            costs.append(cost)
+                    except ValueError:
+                        pass
+
+                if costs:
+                    additional_shipping_cost = min(costs)
+
             # XML construction
             def escape_xml(text):
                 if not text:
@@ -700,9 +792,17 @@ class Initializer:
         <minimal_quantity>1</minimal_quantity>
         <available_for_order>1</available_for_order>
         <show_price>1</show_price>
+        <width>{width}</width>
+        <height>{height}</height>
+        <depth>{depth}</depth>
+        <weight>{weight}</weight>
+        <additional_shipping_cost>{additional_shipping_cost}</additional_shipping_cost>
         <id_shop_default>1</id_shop_default>
         <indexed>1</indexed>
         <reference>{escape_xml(reference)}</reference>
+        <isbn>{isbn}</isbn>
+        <condition>{condition}</condition>
+        <show_condition>1</show_condition>
         <active>1</active>
         <state>1</state>
         <date_add>{date_add}</date_add>
