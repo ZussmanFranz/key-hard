@@ -46,7 +46,7 @@ class Initializer:
             api_key         API key for Prestashop authentication (required),
             categories_path path to categories.json file from scraper results,
             products_path   path to products.json file from scraper results
-        '''
+        """
 
         self.api_url = api_url
         self.api_key = api_key
@@ -56,7 +56,7 @@ class Initializer:
         # Store loaded data
         self.categories = []
         self.products = []
-        
+
         # Map old category IDs to new Prestashop category IDs
         self.category_id_map = {}
 
@@ -174,20 +174,21 @@ class Initializer:
             logger.error(f"Failed to load categories: {e}")
             return False
 
-
     def load_products(self) -> bool:
-        '''
+        """
         Loads products from JSON file.
-        
+
         Returns:
             True if loaded successfully, False otherwise
-        '''
+        """
         try:
             with open(self.products_path, "r", encoding="utf-8") as f:
                 self.products = json.load(f)
-                logger.info(f"Loaded {len(self.products)} products from {self.products_path}")
+                logger.info(
+                    f"Loaded {len(self.products)} products from {self.products_path}"
+                )
                 return True
-                
+
         except FileNotFoundError:
             logger.error(f"Products file not found: {self.products_path}")
             return False
@@ -684,29 +685,28 @@ class Initializer:
 
         Returns:
             Formatted product description string
-        '''
+        """
         parts = []
-        
+
         if product.get("description"):
             parts.append(product["description"])
-        
+
         if product.get("display_code"):
             parts.append(f"\nKod produktu: {product['display_code']}")
-        
+
         if product.get("attributes"):
             parts.append("\nAtrybuty:")
             for key, value in product["attributes"].items():
                 parts.append(f"  {key}: {value}")
-        
+
         if product.get("tags"):
             parts.append(f"\nTagi: {', '.join(product['tags'])}")
-        
+
         return "\n".join(parts)
 
-
     def _add_product_images(self, prestashop_product_id: int, product: Dict) -> bool:
-        '''
-        Attempts to add product images to Prestashop (optional).
+        """
+        Attempts to add product images to Prestashop.
 
         Parameters:
             prestashop_product_id ID of product in Prestashop
@@ -772,52 +772,51 @@ class Initializer:
 
         Returns:
             True if all products created successfully, False otherwise
-        '''
+        """
         if not self.products:
             logger.warning("No products to create. Load products first.")
             return False
-        
+
         logger.info("--- Started creating products ---")
-        
+
         products_to_create = self.products[:limit] if limit else self.products
         total = len(products_to_create)
         created_count = 0
         failed_count = 0
-        
+
         for idx, product in enumerate(products_to_create, 1):
             result = self.create_product(product)
-            
+
             if result:
                 created_count += 1
             else:
                 failed_count += 1
-            
-            # Log progress every 100 products
+
             if idx % 100 == 0:
                 logger.info(f"Progress: {idx}/{total} products processed")
-        
-        logger.info(f"--- Finished creating products. Created: {created_count}, Failed: {failed_count} ---")
-        
+
+        logger.info(
+            f"--- Finished creating products. Created: {created_count}, Failed: {failed_count} ---"
+        )
+
         return failed_count == 0
 
-
     def get_failed_operations(self) -> List[Dict]:
-        '''
+        """
         Returns list of failed operations.
 
         Returns:
             List of failed operation details
-        '''
+        """
         return self.failed_operations
 
-
     def get_summary(self) -> Dict[str, Any]:
-        '''
+        """
         Returns a summary of all operations performed.
 
         Returns:
             Dictionary with operation statistics
-        '''
+        """
         return {
             "created_categories": len(self.created_categories),
             "created_products": len(self.created_products),
@@ -825,12 +824,11 @@ class Initializer:
             "category_id_mappings": len(self.category_id_map),
             "category_ids": self.created_categories,
             "product_ids": self.created_products,
-            "failures": self.failed_operations
+            "failures": self.failed_operations,
         }
 
-
     def save_summary(self, path: str = "initialization_summary.json") -> bool:
-        '''
+        """
         Saves operation summary to a JSON file.
 
         Parameters:
