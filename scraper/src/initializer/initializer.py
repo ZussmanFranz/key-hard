@@ -212,9 +212,6 @@ class Initializer:
         """
         try:
             # Prepare category data structure for PrestaShop
-            # We need to construct the dictionary that matches PrestaShop's schema
-            # Using language ID 1 (Polish) as default
-
             category_schema = {
                 "category": {
                     "name": {
@@ -231,7 +228,6 @@ class Initializer:
                     },
                     "active": "1",
                     "id_parent": str(parent_id),
-                    # description can be added here if available
                 }
             }
 
@@ -239,7 +235,6 @@ class Initializer:
             response = self.prestashop.add("categories", category_schema)
 
             # Extract ID from response
-            # response is usually a dict like {'prestashop': {'category': {'id': '123', ...}}}
             prestashop_id = response.get("prestashop", {}).get("category", {}).get("id")
 
             if prestashop_id:
@@ -574,7 +569,6 @@ class Initializer:
             description = self._build_product_description(product)
 
             # XML construction
-            # Escape XML special characters
             def escape_xml(text):
                 if not text:
                     return ""
@@ -707,13 +701,6 @@ class Initializer:
     def _add_product_images(self, prestashop_product_id: int, product: Dict) -> bool:
         """
         Attempts to add product images to Prestashop.
-
-        Parameters:
-            prestashop_product_id ID of product in Prestashop
-            product               product data with image URLs
-
-        Returns:
-            True if successful or no images, False if error occurred
         """
         try:
             image_url = product.get("thumbnail_high_res") or product.get("thumbnail")
@@ -804,18 +791,12 @@ class Initializer:
     def get_failed_operations(self) -> List[Dict]:
         """
         Returns list of failed operations.
-
-        Returns:
-            List of failed operation details
         """
         return self.failed_operations
 
     def get_summary(self) -> Dict[str, Any]:
         """
         Returns a summary of all operations performed.
-
-        Returns:
-            Dictionary with operation statistics
         """
         return {
             "created_categories": len(self.created_categories),
@@ -830,12 +811,6 @@ class Initializer:
     def save_summary(self, path: str = "initialization_summary.json") -> bool:
         """
         Saves operation summary to a JSON file.
-
-        Parameters:
-            path path where to save the summary
-
-        Returns:
-            True if saved successfully, False otherwise
         """
         try:
             summary = self.get_summary()
@@ -852,15 +827,10 @@ class Initializer:
     def remove_all_products(self) -> bool:
         """
         Removes all products from PrestaShop using prestapyt.
-
-        Returns:
-            True if successful, False otherwise
         """
         try:
             logger.info("--- Started removing all products ---")
 
-            # Get list of products
-            # This returns a list of dicts: [{'attrs': {'id': '1', 'xlink:href': '...'}}, ...]
             try:
                 products_wrapper = self.prestashop.get("products")
             except PrestaShopWebServiceError as e:
@@ -869,7 +839,6 @@ class Initializer:
 
             products = products_wrapper.get("products", {}).get("product", [])
 
-            # Normalize to list if single item
             if isinstance(products, dict):
                 products = [products]
 
@@ -903,11 +872,8 @@ class Initializer:
 
     def remove_all_categories(self) -> bool:
         """
-        Removes all non-basic categories from PrestaShop using prestapyt.
+        Removes all non-basic categories from PrestaShop.
         Only keeps the root category (id=1) and Home (id=2).
-
-        Returns:
-            True if successful, False otherwise
         """
         try:
             logger.info("--- Started removing all non-basic categories ---")
@@ -955,34 +921,21 @@ class Initializer:
 
             for category in categories_sorted:
                 category_id = category.get("id")
-                # Handle name: it can be a list of languages or a single dict
-                name_field = category.get("name", {}).get("language", {})
-                if isinstance(name_field, list):
-                    # just take the first one or search
-                    category_name = name_field[0].get("value", "Unknown")
-                else:
-                    category_name = name_field.get("value", "Unknown")
-
                 level_depth = int(category.get("level_depth", 0))
 
                 # Keep Root (1) and Home (2)
                 if str(category_id) in ["1", "2"]:
-                    logger.info(
-                        f"Skipping protected category {category_id} ({category_name})"
-                    )
                     skipped_count += 1
                     continue
 
                 try:
                     self.prestashop.delete("categories", resource_ids=category_id)
                     logger.info(
-                        f"Removed category {category_id}: {category_name} (level_depth={level_depth})"
+                        f"Removed category {category_id} (level_depth={level_depth})"
                     )
                     removed_count += 1
                 except Exception as e:
-                    logger.warning(
-                        f"Failed to remove category {category_id} ({category_name}): {e}"
-                    )
+                    logger.warning(f"Failed to remove category {category_id}: {e}")
                     failed_count += 1
 
             logger.info(
