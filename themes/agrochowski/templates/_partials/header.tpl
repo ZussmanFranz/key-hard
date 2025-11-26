@@ -1,5 +1,5 @@
 {**
- * Agrochowski Theme Header - Clean Rebuild
+ * Agrochowski Theme Header - Matching agrochowski.pl visual
  *}
 
 {block name='header_nav'}
@@ -12,14 +12,14 @@
         
         <div class="topbar-right">
             <div class="social-icons">
-                <a href="#" class="fb"><i class="fa-brands fa-facebook-f"></i></a>
-                <a href="#" class="insta"><i class="fa-brands fa-instagram"></i></a>
-                <a href="#" class="tiktok"><i class="fa-brands fa-tiktok"></i></a>
+                <a href="https://www.facebook.com/AntykwariatGrochowski" class="fb" target="_blank" rel="noopener"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="https://www.instagram.com/agrochowski/" class="insta" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i></a>
+                <a href="https://www.tiktok.com/@agrochowski" class="tiktok" target="_blank" rel="noopener"><i class="fa-brands fa-tiktok"></i></a>
             </div>
             
             <div class="phone-block">
                 <i class="fa-solid fa-phone"></i>
-                <a href="tel:228702123">22 870 21 23</a>
+                <a href="tel:+48228702123">22 870 21 23</a>
             </div>
             
             <div class="hours-block">
