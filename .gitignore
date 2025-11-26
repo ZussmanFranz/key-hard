@@ -116,7 +116,7 @@ app/config/config.php
 
 modules/*
 override/*
-themes/*/
+
 !themes/classic
 !themes/_core
 !themes/_libraries
@@ -170,6 +170,8 @@ themes/default-bootstrap/modules/*/mails/*
 !var/SymfonyRequirements.php
 /vendor/
 /web/bundles/
+
+/.idea
 
 
 

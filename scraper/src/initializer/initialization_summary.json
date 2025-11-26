@@ -1,0 +1,325 @@
+{
+    "created_categories": 0,
+    "created_products": 0,
+    "failed_operations": 6,
+    "category_id_mappings": 0,
+    "category_ids": [],
+    "product_ids": [],
+    "failures": [
+        {
+            "type": "category",
+            "data": {
+                "id": 499,
+                "name": "Książki",
+                "children": [
+                    {
+                        "id": 157,
+                        "name": "Autografy",
+                        "children": [],
+                        "number_of_pages": 21
+                    },
+                    {
+                        "id": 414,
+                        "name": "Literatura piękna",
+                        "children": [],
+                        "number_of_pages": 6
+                    }
+                ]
+            },
+            "status_code": 500,
+            "error": "{\"errors\":[{\"code\":3,\"message\":\"[PHP Warning #2] Invalid argument supplied for foreach() (\\/var\\/www\\/html\\/classes\\/Category.php, line 2051)\"}]}"
+        },
+        {
+            "type": "category",
+            "data": {
+                "id": 501,
+                "name": "Muzyka",
+                "children": [
+                    {
+                        "id": 415,
+                        "name": "Płyty CD",
+                        "children": [],
+                        "number_of_pages": 6
+                    },
+                    {
+                        "id": 416,
+                        "name": "Płyty winylowe",
+                        "children": [],
+                        "number_of_pages": 6
+                    }
+                ]
+            },
+            "status_code": 500,
+            "error": "{\"errors\":[{\"code\":3,\"message\":\"[PHP Warning #2] Invalid argument supplied for foreach() (\\/var\\/www\\/html\\/classes\\/Category.php, line 2051)\"}]}"
+        },
+        {
+            "type": "category",
+            "data": {
+                "id": 364,
+                "name": "Komiksy",
+                "children": [
+                    {
+                        "id": 118,
+                        "name": "Asterix",
+                        "children": [],
+                        "number_of_pages": 1
+                    },
+                    {
+                        "id": 113,
+                        "name": "Disney",
+                        "children": [],
+                        "number_of_pages": 2
+                    }
+                ]
+            },
+            "status_code": 500,
+            "error": "{\"errors\":[{\"code\":3,\"message\":\"[PHP Warning #2] Invalid argument supplied for foreach() (\\/var\\/www\\/html\\/classes\\/Category.php, line 2051)\"}]}"
+        },
+        {
+            "type": "category",
+            "data": {
+                "id": 502,
+                "name": "Inne",
+                "children": [
+                    {
+                        "id": 335,
+                        "name": "Audiobooki, eBooki",
+                        "children": [],
+                        "number_of_pages": 7
+                    },
+                    {
+                        "id": 394,
+                        "name": "DVD",
+                        "children": [],
+                        "number_of_pages": 2
+                    }
+                ]
+            },
+            "status_code": 500,
+            "error": "{\"errors\":[{\"code\":3,\"message\":\"[PHP Warning #2] Invalid argument supplied for foreach() (\\/var\\/www\\/html\\/classes\\/Category.php, line 2051)\"}]}"
+        },
+        {
+            "type": "product",
+            "data": {
+                "price": {
+                    "current": "36,00 zł",
+                    "additional_info": "",
+                    "regular": "",
+                    "omnibus": ""
+                },
+                "product_name": "Asteriks i Kleopatra",
+                "product_link": "/pl/p/Asteriks-i-Kleopatra/649036",
+                "product_author": "Goscinny René, Uderzo Albert",
+                "thumbnail": "/environment/cache/images/productGfx_725254_300_300/2025_07_05-20_04-Office-Lens-2.jpg?overlay=1",
+                "shipping_info": {
+                    "shippings": [
+                        {
+                            "id": "1",
+                            "engine": "personal",
+                            "name": "odbiór osobisty",
+                            "description": "odbiór w siedzibie firmy"
+                        },
+                        {
+                            "id": "15",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony",
+                            "description": ""
+                        },
+                        {
+                            "id": "13",
+                            "engine": "inpost",
+                            "name": "InPost Paczkomaty 24/7",
+                            "description": ""
+                        },
+                        {
+                            "id": "17",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony priorytet",
+                            "description": ""
+                        },
+                        {
+                            "id": "12",
+                            "engine": "inpost",
+                            "name": "InPost Kurier",
+                            "description": ""
+                        },
+                        {
+                            "id": "10",
+                            "engine": "pocztaPolska",
+                            "name": "Kurier Pocztex48",
+                            "description": ""
+                        }
+                    ],
+                    "shipping_countries": {
+                        "179": "Polska"
+                    },
+                    "shipping_country": 179,
+                    "country2shipping": {
+                        "179": [
+                            {
+                                "id": 1,
+                                "lowestCost": 0,
+                                "lowestCostWithCurrency": "0,00 zł"
+                            },
+                            {
+                                "id": 15,
+                                "lowestCost": 10.9,
+                                "lowestCostWithCurrency": "10,90 zł"
+                            },
+                            {
+                                "id": 13,
+                                "lowestCost": 13,
+                                "lowestCostWithCurrency": "13,00 zł"
+                            },
+                            {
+                                "id": 17,
+                                "lowestCost": 14,
+                                "lowestCostWithCurrency": "14,00 zł"
+                            },
+                            {
+                                "id": 12,
+                                "lowestCost": 16,
+                                "lowestCostWithCurrency": "16,00 zł"
+                            },
+                            {
+                                "id": 10,
+                                "lowestCost": 19,
+                                "lowestCostWithCurrency": "19,00 zł"
+                            }
+                        ]
+                    }
+                },
+                "thumbnail_high_res": "/environment/cache/images/productGfx_725254_0_0/2025_07_05-20_04-Office-Lens-2.jpg",
+                "display_code": "684735",
+                "attributes": {
+                    "rok_wydania": "2024",
+                    "wydawnictwo": "Egmont, Hachette",
+                    "liczba_stron": "96",
+                    "wysokość": "291",
+                    "oprawa": "twarda",
+                    "stan_książki": "5",
+                    "tłumacz": "Kilian Jarosław",
+                    "redakcja/opracowanie": "Gwiazda Katarzyna",
+                    "wydanie": "III",
+                    "seria_wydawnicza": "Klub Świata Komiksu - album 3206, Asteriks, tom 6",
+                    "fotografie": "kolorowe"
+                },
+                "id": 649036,
+                "category_id": 118
+            },
+            "error": "Category mapping not found"
+        },
+        {
+            "type": "product",
+            "data": {
+                "price": {
+                    "current": "80,00 zł",
+                    "additional_info": "",
+                    "regular": "",
+                    "omnibus": ""
+                },
+                "product_name": "Umpa-pa czerwonoskóry. Wydanie zbiorcze",
+                "product_link": "/pl/p/Umpa-pa-czerwonoskory.-Wydanie-zbiorcze-/640153",
+                "product_author": "Goscinny Rene",
+                "thumbnail": "/environment/cache/images/productGfx_714062_300_300/2025_05_28-13_04-Office-Lens.jpg?overlay=1",
+                "shipping_info": {
+                    "shippings": [
+                        {
+                            "id": "1",
+                            "engine": "personal",
+                            "name": "odbiór osobisty",
+                            "description": "odbiór w siedzibie firmy"
+                        },
+                        {
+                            "id": "15",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony",
+                            "description": ""
+                        },
+                        {
+                            "id": "13",
+                            "engine": "inpost",
+                            "name": "InPost Paczkomaty 24/7",
+                            "description": ""
+                        },
+                        {
+                            "id": "17",
+                            "engine": "pocztaPolska",
+                            "name": "List polecony priorytet",
+                            "description": ""
+                        },
+                        {
+                            "id": "12",
+                            "engine": "inpost",
+                            "name": "InPost Kurier",
+                            "description": ""
+                        },
+                        {
+                            "id": "10",
+                            "engine": "pocztaPolska",
+                            "name": "Kurier Pocztex48",
+                            "description": ""
+                        }
+                    ],
+                    "shipping_countries": {
+                        "179": "Polska"
+                    },
+                    "shipping_country": 179,
+                    "country2shipping": {
+                        "179": [
+                            {
+                                "id": 1,
+                                "lowestCost": 0,
+                                "lowestCostWithCurrency": "0,00 zł"
+                            },
+                            {
+                                "id": 15,
+                                "lowestCost": 10.9,
+                                "lowestCostWithCurrency": "10,90 zł"
+                            },
+                            {
+                                "id": 13,
+                                "lowestCost": 13,
+                                "lowestCostWithCurrency": "13,00 zł"
+                            },
+                            {
+                                "id": 17,
+                                "lowestCost": 14,
+                                "lowestCostWithCurrency": "14,00 zł"
+                            },
+                            {
+                                "id": 12,
+                                "lowestCost": 16,
+                                "lowestCostWithCurrency": "16,00 zł"
+                            },
+                            {
+                                "id": 10,
+                                "lowestCost": 19,
+                                "lowestCostWithCurrency": "19,00 zł"
+                            }
+                        ]
+                    }
+                },
+                "thumbnail_high_res": "/environment/cache/images/productGfx_714062_0_0/2025_05_28-13_04-Office-Lens.jpg",
+                "display_code": "704522",
+                "attributes": {
+                    "rok_wydania": "2007",
+                    "wydawnictwo": "Egmont Polska",
+                    "liczba_stron": "176",
+                    "wysokość": "300",
+                    "oprawa": "twarda",
+                    "stan_książki": "4",
+                    "tłumacz": "Puszczewicz Marek",
+                    "ilustrator": "Uderzo Albert",
+                    "wydanie": "I",
+                    "seria_wydawnicza": "Klub Świata Komiksu Album 521",
+                    "fotografie": "kolorowe"
+                },
+                "description": "Minimalne wgniecenia i zarysowania oraz delikatne przybrudzenia",
+                "id": 640153,
+                "category_id": 118
+            },
+            "error": "Category mapping not found"
+        }
+    ]
+}
