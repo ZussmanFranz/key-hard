@@ -22,6 +22,40 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  *}
+ 
+ <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Ищем ссылку внутри баннера
+    // Обычно в PrestaShop это селектор .banner a
+    var promoBanner = document.querySelector('a.banner');
+
+    if (promoBanner) {
+        promoBanner.addEventListener('click', function() {
+            // 2. Отправляем событие в Google Analytics
+            gtag('event', 'banner_use_promo', {
+                'event_category': 'promotions',
+                'event_label': 'main_home_banner',
+                'value': 1
+            });
+            console.log('GA4: Banner clicked!');
+        });
+    }
+    
+    var isFromRegistration = document.referrer.includes('create_account');
+    var isCustomerLoggedIn = (typeof prestashop !== 'undefined' && prestashop.customer && prestashop.customer.is_logged);
+    var regAlreadySent = sessionStorage.getItem('reg_goal_sent');
+
+    if (isFromRegistration && isCustomerLoggedIn && !regAlreadySent) {
+        gtag('event', 'page_view', {
+            'page_title': 'Success Registration',
+            'page_location': window.location.origin + '/registration-success-virtual'
+        });
+        sessionStorage.setItem('reg_goal_sent', 'true');
+        console.log('GA4: Registration Destination Goal Sent');
+    }
+});
+</script>
+
 {block name='head_charset'}
   <meta charset="utf-8">
 {/block}
