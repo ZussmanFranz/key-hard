@@ -29,7 +29,7 @@ services:
       - DB_PASSWD=prestashop_password
       - DB_NAME=prestashop
       - PS_INSTALL_AUTO=1
-      - PS_ERASE_DB=0  # Set to 1 if you want to wipe on restart, kept 0 for persistence
+      - PS_ERASE_DB=0
       - PS_LANGUAGE=pl
       - PS_COUNTRY=PL
       - PS_DOMAIN=localhost:8443
@@ -39,6 +39,8 @@ services:
     volumes:
       - shop_data:/var/www/html
       - ../themes/agrochowski:/var/www/html/themes/agrochowski:z
+      - ./scripts/init-theme.sh:/tmp/init-theme.sh:ro,z
+      - ./scripts/docker-entrypoint-wrapper.sh:/docker-entrypoint-wrapper.sh:ro,z
     depends_on:
       - db
     networks:
