@@ -1,0 +1,1955 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+
+/* =========================================
+   AGROCHOWSKI.PL - VISUAL MATCHING CSS
+   Colors:
+   - Primary Brown: #7f4734
+   - Cream Background: #fcf8e8
+   - Orange Accent: #ef6539
+   - Dark Text: #1e1e1e
+   - Gold/Special: #db8c16
+   - Light Gold: #efcd77
+   ========================================= */
+
+:root {
+    --color-primary: #7f4734;
+    --color-cream: #fcf8e8;
+    --color-orange: #ef6539;
+    --color-dark: #1e1e1e;
+    --color-gold: #db8c16;
+    --color-gold-light: #efcd77;
+    --font-family: 'Poppins', sans-serif;
+}
+
+body, html {
+    font-family: var(--font-family);
+    color: var(--color-dark);
+}
+
+.custom-topbar {
+    background-color: var(--color-cream);
+    color: var(--color-dark);
+    font-family: var(--font-family);
+    font-size: 15px;
+    padding: 10px 0;
+    line-height: 1.2;
+}
+
+.topbar-flex {
+    display: flex;
+    justify-content: space-between; /* Разносим влево и вправо */
+    align-items: center;
+    flex-wrap: wrap; /* На случай мобилки */
+}
+
+.topbar-left {
+    font-weight: 400;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Расстояние между блоками (соцсети / телефон / часы) */
+}
+
+.social-icons {
+    display: flex;
+    gap: 10px; /* Расстояние между иконками */
+}
+.social-icons a {
+    text-decoration: none;
+    font-size: 16px;
+    transition: opacity 0.3s;
+}
+
+.social-icons .fb { color: #3b5998; }
+.social-icons .insta { color: #C13584; }
+.social-icons .tiktok { color: #000000; }
+
+.social-icons a:hover { opacity: 0.7; }
+
+.phone-block {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+.phone-block i {
+    color: var(--color-primary);
+    font-size: 14px;
+}
+.phone-block a {
+    color: var(--color-dark);
+    text-decoration: underline;
+}
+
+.hours-block {
+    color: var(--color-dark);
+    font-size: 14px;
+}
+
+.header-row {
+    background-image: url('fullbg.jpg');
+    background-repeat: no-repeat;
+    background-size: auto;
+    background-position: top center;
+    background-color: var(--color-cream);
+    position: relative;
+    padding-top: 105px; 
+    padding-bottom: 0;
+}
+
+.header-row .container {
+    max-width: 1600px !important; 
+    width: 95%; /* Немного отступов по бокам для мобильных */
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.header-content-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    height: 60px;
+    margin-bottom: 20px;
+    position: relative; /* Чтобы лого позиционировалось относительно этого блока */
+    margin-left: 70px; 
+}
+
+.logo-block {
+    position: relative;
+    flex-shrink: 0;
+    z-index: 100;
+    top: auto;
+    left: auto;
+    margin-left: 100px; 
+}
+
+.logo-block img {
+    background: var(--color-cream);
+    border-radius: 50%;
+    padding: 15px;
+    width: 200px;
+    height: auto;
+}
+
+.search-block {
+    flex-grow: 1;
+    max-width: 600px;
+    height: 50px;
+    background: #fff;
+}
+
+.search-container form, 
+.search-input-group {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+.search-input {
+    flex-grow: 1;
+    border: none;
+    padding: 0 20px;
+    font-size: 15px;
+    outline: none;
+    color: var(--color-dark);
+    font-family: var(--font-family);
+}
+
+.search-btn {
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+    width: 60px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-btn i {
+    font-size: 26px; 
+}
+
+.search-btn:hover { background-color: #5e3527; }
+
+.buttons-block {
+    height: 50px;
+    background: #fff;
+}
+
+.basket-container {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    order: 3;
+    flex-shrink: 0 !important;
+    margin: 40px 0px 0px 40px;
+    height: 50px;
+    padding: 17px 27px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.combined-actions {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    position: relative;
+}
+
+#_desktop_cart,
+.blockcart,
+.blockcart .header {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* 2. Стилизуем ссылку внутри (чтобы выглядела как кнопка) */
+.blockcart .header a {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 30px; /* Широкая зона клика, как у Аккаунта */
+    
+    color: #333;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    white-space: nowrap;
+    
+    border-left: 1px solid #eee; /* Линия слева */
+    cursor: pointer;
+}
+
+/* 3. Иконка и текст */
+.blockcart .header a i {
+    color: var(--color-primary);
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+/* 4. Ховер эффект */
+.blockcart .header a:hover {
+    background-color: #f9f9f9;
+}
+
+/* Если нужно скрыть стандартные стили PrestaShop, которые могут мешать */
+.blockcart {
+    background: transparent;
+    margin: 0;
+    padding: 0;
+    width: auto;
+}
+
+.user-link {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 30px;
+    color: var(--color-dark);
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    font-family: var(--font-family);
+    white-space: nowrap;
+    border-left: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.user-link i, .cart-link i { color: var(--color-primary); margin-right: 10px; font-size: 18px; }
+.user-link:hover{ background-color: #f9f9f9; }
+
+.basket-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 380px;
+    background-color: #fff;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    z-index: 1000;
+    border-top: 3px solid var(--color-primary);
+}
+.basket-dropdown::before {
+    content: ''; display: block; position: absolute;
+    top: -20px; left: 0; width: 100%; height: 20px;
+    background: transparent; z-index: 1;
+}
+.combined-actions:hover .basket-dropdown { display: block; }
+
+.basket-summary-row { padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+.btn-checkout-brown {
+    background-color: var(--color-primary); color: #fff; padding: 12px 25px;
+    font-size: 14px; font-weight: 500; text-transform: uppercase; border-radius: 2px;
+    transition: background-color 0.3s;
+}
+.btn-checkout-brown:hover { background-color: #5e3527; color: #fff; }
+.basket-price-info { text-align: right; font-family: var(--font-family); color: var(--color-dark); }
+.basket-price-info .price { font-size: 18px; font-weight: 700; }
+.free-shipping-info { background-color: var(--color-cream); padding: 15px; text-align: center; font-size: 13px; color: #555; border-top: 1px solid #eee; }
+.free-shipping-info i { color: var(--color-primary); margin-right: 5px; }
+
+.header-menu-row {
+    background-color: var(--color-cream);
+    position: relative;
+    z-index: 90;
+    height: 55px;
+}
+
+.header-menu-row .container {
+    height: 100%;
+}
+
+.innermenu {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    margin-left: 400px;
+}
+
+.menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.menu-list > li {
+    height: auto;
+    display: flex;
+    align-items: center;
+    position: relative; /* Для позиционирования выпадающего меню */
+}
+
+.menu-list > li > a {
+    display: flex;
+    align-items: center;
+    padding: 10px 18px;
+    color: var(--color-dark);
+    font-family: var(--font-family);
+    font-size: 20px;
+    font-weight: 500;
+    text-decoration: none;
+    text-transform: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.menu-list > li > a i {
+    margin-left: 6px;
+    font-size: 16px;
+    color: #444;
+}
+
+.menu-list > li:hover > a {
+    color: var(--color-primary);
+}
+
+.submenu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    min-width: 220px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    padding: 10px 0;
+    z-index: 1000;
+    border-top: 3px solid var(--color-primary);
+}
+
+.menu-list > li:hover .submenu {
+    display: block;
+}
+
+.submenu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.submenu li a {
+    display: block;
+    padding: 8px 20px;
+    color: var(--color-dark);
+    font-size: 20px;
+    text-decoration: none;
+    font-family: var(--font-family);
+    transition: background 0.2s;
+}
+
+.submenu li a:hover {
+    background-color: var(--color-cream);
+    color: var(--color-primary);
+}
+.footer-newsletter-wrapper {
+    background-color: #fdfbf0;
+    padding: 40px 0;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.footer-newsletter-wrapper .container {
+    max-width: 100%;
+    background-color: #ffffff; 
+    width: 100%;
+    margin: 0;
+}
+
+.block_newsletter {
+    text-align: center;
+    margin: 0 auto;
+    float: none !important;
+}
+
+.block_newsletter .col-xs-12 {
+    float: none !important;
+}
+
+#block-newsletter-label {
+    font-size: 36px !important;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 5px;
+    padding: 10px 0 !important;
+    text-align: center;
+}
+
+.newsletter-slogan {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+.newsletter-slogan strong {
+    color: #a05a2c; 
+    font-weight: 700;
+    font-size: x-large;
+}
+
+.block_newsletter form .form-group-centered {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    max-width: 700px;
+    margin: 0 auto 15px auto;
+}
+
+.block_newsletter .input-wrapper {
+    flex-grow: 1;
+    margin-right: 0;
+}
+
+.block_newsletter input[name="email"] {
+    background-color: #fcf8e8; 
+    border: none;
+    height: 45px;
+    width: 100%;
+    padding: 10px 15px;
+    color: #666;
+    outline: none;
+}
+
+.block_newsletter input[name="email"]::placeholder {
+    color: #999;
+    font-style: normal;
+}
+
+.block_newsletter input[name="submitNewsletter"].btn {
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    height: 45px;
+    padding: 0 30px;
+    text-transform: none;
+    font-weight: normal;
+    font-size: 16px;
+    margin-left: 0 !important;
+    float: none;
+    transition: background-color 0.3s;
+}
+
+.block_newsletter input[name="submitNewsletter"]:hover {
+    background-color: #5e3527;
+}
+
+.block_newsletter .newsletter-conditions, 
+.block_newsletter p {
+    font-size: 15px;
+    font-family: var(--font-family);
+    color: var(--color-dark);
+    margin-top: 5px;
+}
+
+@media (max-width: 576px) {
+    .block_newsletter form .form-group-centered {
+        flex-direction: column;
+    }
+    .block_newsletter input[name="submitNewsletter"].btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+.footer-container {
+    background-color: #ffffff;
+    padding: 37.5px 0 40px;
+    color: #333;
+}
+
+.footer-container h3, 
+.footer-container .h3,
+.footer-heading,
+.footer-col-1 strong,
+.footer-col-2 strong {
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    text-transform: none;
+}
+
+.footer-container a {
+    color: var(--color-dark);
+    transition: color 0.2s;
+}
+
+.footer-container a:hover {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.footer-logo-bg {
+    background-image: url('footer_logo.png'); 
+    background-repeat: no-repeat;
+    background-position: center left;
+    background-size: contain;
+    width: 100%;
+    height: 150px;
+    margin-bottom: 20px;
+    display: block;
+}
+
+@media (max-width: 767px) {
+    .footer-logo-bg {
+        background-position: center center;
+    }
+}
+
+.social-icons-container {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.social-link div {
+    width: 24px;
+    height: 24px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.social-icon-fb { background-image: url('Icon_facebook.svg'); }
+.social-icon-insta { background-image: url('Icon_instagram.svg'); }
+.social-icon-tiktok { background-image: url('tiktok.svg'); }
+
+.payment-icons-container {
+    display: flex;
+    column-gap: 25px;
+    row-gap: 10px;
+    flex-wrap: wrap;
+}
+
+.footer-bottom-wrapper {
+    background-color: #fdfbf0;
+    border-top: 1px solid #eaeaea;
+    padding: 16px 0;
+}
+
+.copyright-text {
+    font-size: 15px;
+    color: var(--color-dark);
+    margin: 0;
+    font-family: var(--font-family);
+}
+
+.footer-bottom-wrapper .container {
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .footer-links-wrapper .row > div {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+.footer-links-wrapper .links > .row {
+    display: flex;
+}
+
+.search-block {
+    position: relative !important;
+    z-index: 10 !important;
+    margin: 0 30px !important;
+    flex-grow: 1 !important;
+}
+
+#search_widget {
+    margin: 0 !important;
+    width: 100% !important;
+    overflow: visible !important; /* Разрешаем выход за границы, если что */
+}
+
+#search_widget form {
+    position: relative !important;
+    height: 50px !important;
+}
+
+#header {
+	box-shadow: none;
+}
+
+#search_widget form input[type="text"] {
+    position: relative !important;
+    z-index: 1 !important;
+    width: 125% !important;
+    height: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    
+    /* ВАЖНО: Отступ слева маленький, справа - большой (под кнопку) */
+    padding: 0 0px 0 40px !important; 
+    
+    color: #333 !important;
+    font-family: 'Poppins', sans-serif !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+
+/* === ПОЛНАЯ ПЕРЕРАБОТКА МЕНЮ (FIX ВЫПАДАЮЩИХ ЭЛЕМЕНТОВ) === */
+
+/* 1. ГЛАВНЫЙ КОНТЕЙНЕРА */
+#_desktop_top_menu {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#_desktop_top_menu .top-menu {
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+
+/* 2. РОДИТЕЛЬСКИЕ ПУНКТЫ (Książki, Muzyka...) */
+#_desktop_top_menu .top-menu > li {
+    position: relative !important; /* Важно для привязки выпадайки */
+    display: flex !important;
+    align-items: center !important;
+    height: 100%;
+    margin-right: 5px !important;
+    border: none !important;
+}
+
+/* 1. Настройка ссылок (Родительские категории) */
+#_desktop_top_menu .top-menu > li > a {
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 18px !important;      /* Размер шрифта как на фото */
+    font-weight: 500 !important;     /* Средняя толщина */
+    color: #1e1e1e !important;       /* Темно-серый цвет (по умолчанию) */
+    text-transform: none !important; /* Обычный текст (не КАПС) */
+    padding: 10px 15px !important;
+    display: flex !important;        /* Чтобы выровнять текст и стрелку */
+    align-items: center !important;
+    border-bottom: none !important;  /* Убираем лишние линии */
+    transition: color 0.3s ease;     /* Плавное изменение цвета */
+}
+
+/* 2. Добавляем СТРЕЛКУ вниз (Chevron Down) */
+#_desktop_top_menu .top-menu > li > a[data-depth="0"]::after {
+    content: "\E313";                /* Код иконки Material Icons (галочка вниз) */
+    font-family: 'Material Icons' !important;
+    font-size: 18px !important;      /* Размер стрелки */
+    margin-left: 6px !important;     /* Отступ от текста до стрелки */
+    color: #1e1e1e !important;       /* Цвет стрелки (черный) */
+    border: none !important;         /* Убираем рамки темы */
+    font-weight: normal !important;  /* Стрелка не должна быть жирной */
+    margin-top: 1px !important;      /* Микро-коррекция высоты */
+}
+
+/* 3. Эффект ПРИ НАВЕДЕНИИ (Подсветка) */
+
+/* Цвет текста становится коричневым */
+#_desktop_top_menu .top-menu > li:hover > a {
+    color: #6b4027 !important;       /* Ваш коричневый цвет */
+}
+
+/* Цвет стрелки ТОЖЕ становится коричневым */
+#_desktop_top_menu .top-menu > li:hover > a::after {
+    color: #6b4027 !important;
+}
+
+/* Если пункт активен (вы уже внутри категории), он тоже будет коричневым */
+#_desktop_top_menu .top-menu > li.current > a {
+    color: #6b4027 !important;
+    font-weight: 600 !important;
+}
+
+/* 3. ВЫПАДАЮЩЕЕ ОКНО (БЕЛЫЙ БЛОК) */
+#_desktop_top_menu .top-menu .popover {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    width: 260px !important;       /* Фиксированная ширина */
+    background: #fff !important;
+    border-radius: 0 !important;
+    border: none !important;
+    border-top: 3px solid #6b4027 !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15) !important;
+    padding: 0 !important;         /* Убираем отступы контейнера */
+    z-index: 1000 !important;
+    display: none;                 /* Скрыто по умолчанию */
+}
+
+/* Показываем при наведении */
+#_desktop_top_menu .top-menu > li:hover .popover {
+    display: block !important;
+}
+
+/* 4. СБРОС ВНУТРЕННЕЙ СЕТКИ (Самое важное!) */
+/* Убиваем классы row, col-md-*, content, которые ломают верстку */
+#_desktop_top_menu .top-menu .popover .content,
+#_desktop_top_menu .top-menu .popover .row,
+#_desktop_top_menu .top-menu .popover .col-xs-12,
+#_desktop_top_menu .top-menu .popover .col-sm-12,
+#_desktop_top_menu .top-menu .popover .col-md-12 {
+    width: 100% !important;
+    float: none !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: static !important;
+}
+
+/* 5. СПИСОК ПОДКАТЕГОРИЙ (UL) */
+#_desktop_top_menu .top-menu .popover ul {
+    display: block !important;
+    margin: 0 !important;
+    padding: 10px 0 !important;
+    width: 100% !important;
+    list-style: none !important;
+}
+
+/* 6. ЭЛЕМЕНТЫ (LI) */
+#_desktop_top_menu .top-menu .popover ul li {
+    width: 100% !important;
+    display: block !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    float: none !important;
+}
+
+/* 7. ССЫЛКИ ПОДКАТЕГОРИЙ (Дизайн) */
+#_desktop_top_menu .top-menu .popover ul li a {
+    display: block !important;
+    padding: 10px 20px !important;
+    font-size: 14px !important;
+    color: #333 !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    border-bottom: 1px solid #f5f5f5 !important;
+    background: transparent !important; /* Убираем бежевый фон, если он был */
+    width: 100% !important;
+    line-height: 1.4 !important;
+}
+
+/* Ховер эффект для ссылок внутри */
+#_desktop_top_menu .top-menu .popover ul li a:hover {
+    background-color: var(--color-cream) !important;
+    color: var(--color-primary) !important;
+    text-decoration: none !important;
+}
+
+/* 8. СКРЫВАЕМ ЛИШНЕЕ */
+/* Скрываем заголовки категорий, если они дублируются как ссылки */
+#_desktop_top_menu .top-menu .popover .menu-title {
+    display: none !important;
+}
+/* Скрываем картинки */
+#_desktop_top_menu .top-menu .popover img {
+    display: none !important;
+}
+
+#_desktop_top_menu .top-menu > li:not(:has(.popover)) > a::after {
+    display: none !important;
+    content: none !important;
+}
+
+#_desktop_top_menu .top-menu > li:nth-last-child(-n+3) > a::after {
+    display: none !important; 
+    content: none !important;
+}
+
+/* =========================================
+   PRODUCT CARDS & LISTINGS (AGROCHOWSKI STYLE)
+   ========================================= */
+
+/* Product card background */
+.product-miniature {
+    background: #fff;
+    padding: 1em;
+    border: none;
+    transition: box-shadow 0.3s;
+}
+
+.product-miniature:hover {
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+/* Product image container */
+.product-miniature .thumbnail-container {
+    position: relative;
+}
+
+.product-miniature .product-thumbnail {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 180px;
+}
+
+.product-miniature .product-thumbnail img {
+    max-height: 160px;
+    max-width: 90%;
+    width: auto;
+    margin: 0 auto;
+}
+
+/* Product title */
+.product-miniature .product-title {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 28px;
+    height: 58px;
+    overflow: hidden;
+    margin: 10px 0;
+    color: var(--color-dark);
+}
+
+.product-miniature .product-title a {
+    color: var(--color-dark);
+    text-decoration: none;
+}
+
+.product-miniature .product-title a:hover {
+    color: var(--color-primary);
+}
+
+/* Product price */
+.product-miniature .product-price-and-shipping {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--color-dark);
+}
+
+.product-miniature .product-price-and-shipping .regular-price {
+    color: var(--color-primary);
+    font-size: 16px;
+    text-decoration: line-through;
+}
+
+.product-miniature .product-price-and-shipping .price {
+    color: var(--color-dark);
+}
+
+.product-miniature .has-discount .price {
+    color: var(--color-orange) !important;
+}
+
+/* Product flags (New, Promo, Special) */
+.product-miniature .product-flags {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+}
+
+.product-miniature .product-flag {
+    padding: 6px 12px;
+    border-radius: 2px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+.product-miniature .product-flag.new {
+    background: var(--color-gold-light);
+    color: var(--color-primary);
+}
+
+.product-miniature .product-flag.discount,
+.product-miniature .product-flag.on-sale {
+    background: var(--color-orange);
+    color: #fff;
+}
+
+/* Add to cart button */
+.product-miniature .add-to-cart,
+.add-to-cart {
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: var(--font-family);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.product-miniature .add-to-cart:hover,
+.add-to-cart:hover {
+    background-color: #5e3527;
+}
+
+/* =========================================
+   BUTTONS (GLOBAL)
+   ========================================= */
+
+.btn-primary,
+.btn.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+    border-radius: 2px;
+    font-family: var(--font-family);
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover,
+.btn.btn-primary:hover {
+    background-color: #5e3527;
+    border-color: #5e3527;
+}
+
+.btn-secondary {
+    background-color: var(--color-cream);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    border-radius: 2px;
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-primary);
+    color: #fff;
+}
+
+/* =========================================
+   PAGINATION
+   ========================================= */
+
+.pagination .page-item .page-link {
+    border: none;
+    font-size: 20px;
+    background: #fff;
+    color: var(--color-primary);
+    padding: 6px 15px;
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.pagination .page-item .page-link:hover {
+    background: var(--color-cream);
+    color: var(--color-primary);
+}
+
+/* =========================================
+   CATEGORY SIDEBAR MENU
+   ========================================= */
+
+.block-categories .category-sub-menu li a {
+    color: var(--color-dark);
+    padding: 10px 18px;
+    display: block;
+    font-family: var(--font-family);
+    transition: all 0.3s;
+}
+
+.block-categories .category-sub-menu li a:hover,
+.block-categories .category-sub-menu li.current a {
+    color: #fff;
+    background: var(--color-primary);
+}
+
+/* =========================================
+   PRODUCT PAGE - AGROCHOWSKI STYLE
+   ========================================= */
+
+.agrochowski-product-page {
+    background: #fff;
+    padding: 0;
+}
+
+.agrochowski-product-page .product-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 15px;
+}
+
+/* Left column - Product Image */
+.product-image-column {
+    padding-right: 40px;
+}
+
+.product-image-column .product-cover {
+    text-align: center;
+}
+
+.product-image-column .product-cover img {
+    max-width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: contain;
+}
+
+.product-image-column .product-images {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.product-image-column .thumb-container {
+    border: 1px solid #eee;
+    cursor: pointer;
+    transition: border-color 0.3s;
+    width: 60px;
+    height: 60px;
+}
+
+.product-image-column .thumb-container:hover,
+.product-image-column .thumb-container.selected {
+    border-color: var(--color-primary);
+}
+
+/* Right column - Product Info */
+.product-info-column {
+    padding-left: 20px;
+}
+
+/* Product Header (Title & Author) */
+.product-header-info {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.product-title-agrochowski {
+    font-family: var(--font-family);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-dark);
+    line-height: 1.3;
+    margin: 0 0 5px 0;
+}
+
+.product-author-agrochowski {
+    font-family: var(--font-family);
+    font-size: 14px;
+    color: #888;
+    margin: 0;
+}
+
+.product-author-agrochowski a {
+    color: #888;
+    text-decoration: underline;
+}
+
+.product-author-agrochowski a:hover {
+    color: var(--color-primary);
+}
+
+/* Price Section */
+.product-price-section {
+    margin-bottom: 20px;
+}
+
+.product-price-section .product-prices {
+    margin-bottom: 5px;
+}
+
+.product-price-section .current-price-value,
+.product-price-section .current-price {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-dark);
+    display: block;
+    line-height: 1.2;
+}
+
+.product-price-section .tax-shipping-delivery-label {
+    font-size: 12px;
+    color: #999;
+    display: block;
+    margin-top: 2px;
+}
+
+.product-price-section .regular-price {
+    font-size: 16px;
+    color: #999;
+    text-decoration: line-through;
+}
+
+/* Unique item badge */
+.unique-item-badge {
+    display: inline-block;
+    color: var(--color-orange);
+    font-family: var(--font-family);
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 0;
+}
+
+.limited-stock-badge {
+    display: inline-block;
+    color: var(--color-orange);
+    font-family: var(--font-family);
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+/* Add to Cart Section - Agrochowski Style */
+.product-actions-wrapper {
+    margin-bottom: 15px;
+}
+
+.product-add-to-cart .product-quantity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.product-add-to-cart .qty-label {
+    font-family: var(--font-family);
+    font-size: 14px;
+    color: #666;
+    margin-right: 5px;
+}
+
+.product-add-to-cart .qty-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.product-add-to-cart .qty {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.product-add-to-cart .qty #quantity_wanted {
+    width: 50px;
+    height: 42px;
+    text-align: center;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    font-family: var(--font-family);
+    appearance: textfield;
+    -moz-appearance: textfield;
+    -webkit-appearance: textfield;
+}
+
+.product-add-to-cart .qty #quantity_wanted::-webkit-outer-spin-button,
+.product-add-to-cart .qty #quantity_wanted::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.product-add-to-cart .qty-buttons {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-left: none;
+    height: 42px;
+}
+
+.product-add-to-cart .qty-btn {
+    background: #fff;
+    border: none;
+    padding: 0;
+    width: 22px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.product-add-to-cart .qty-btn:first-child {
+    border-bottom: 1px solid #ddd;
+}
+
+.product-add-to-cart .qty-btn i {
+    font-size: 14px;
+    color: #666;
+}
+
+.product-add-to-cart .qty-btn:hover {
+    background: #f5f5f5;
+}
+
+.product-add-to-cart .add-to-cart {
+    background-color: var(--color-primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 42px;
+}
+
+.product-add-to-cart .add-to-cart i {
+    font-size: 16px;
+}
+
+.product-add-to-cart .add-to-cart:hover {
+    background-color: #5e3527;
+}
+
+.product-add-to-cart .wishlist-btn {
+    display: flex;
+    align-items: center;
+}
+
+.product-add-to-cart .wishlist-btn a,
+.product-add-to-cart .wishlist-btn button {
+    width: 42px;
+    height: 42px;
+    border: 1px solid #ddd;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.product-add-to-cart .wishlist-btn a:hover,
+.product-add-to-cart .wishlist-btn button:hover {
+    border-color: var(--color-primary);
+}
+
+.product-add-to-cart .wishlist-btn i {
+    font-size: 18px;
+    color: #888;
+}
+
+/* Hide default control-label */
+.product-add-to-cart > .control-label {
+    display: none;
+}
+
+/* Payment Security Info */
+.payment-security-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    margin-bottom: 12px;
+}
+
+.payment-security-info > span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: #666;
+}
+
+.payment-security-info > span i {
+    font-size: 16px;
+}
+
+.payment-security-info i {
+    font-size: 16px;
+    color: #666;
+}
+
+.payment-icons {
+    display: flex;
+    gap: 8px;
+}
+
+.payment-icons img {
+    height: 24px;
+    width: auto;
+}
+
+/* Benefits Box */
+.product-benefits-box {
+    background: #fafafa;
+    border: 1px solid #eee;
+    padding: 15px 20px;
+}
+
+.product-benefits-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.product-benefits-box ul li {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    font-family: var(--font-family);
+    font-size: 13px;
+    color: var(--color-dark);
+}
+
+.product-benefits-box ul li i {
+    color: #888;
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+/* ========== TABS SECTION (Below main product) ========== */
+.product-tabs-section {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #eee;
+}
+
+.product-tabs-agrochowski {
+    max-width: 800px;
+}
+
+.product-tabs-agrochowski .nav-tabs {
+    border-bottom: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    background: transparent;
+}
+
+.product-tabs-agrochowski .nav-tabs .nav-item {
+    margin-bottom: 0;
+}
+
+.product-tabs-agrochowski .nav-tabs .nav-link {
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+    color: #888;
+    font-family: var(--font-family);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px 20px;
+    text-transform: none;
+    transition: all 0.3s;
+    border-bottom: 2px solid transparent;
+}
+
+.product-tabs-agrochowski .nav-tabs .nav-link:hover {
+    color: var(--color-primary);
+}
+
+.product-tabs-agrochowski .nav-tabs .nav-link.active {
+    background-color: transparent;
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.product-tabs-agrochowski .tab-content {
+    background-color: #fff;
+    border: none;
+    padding: 25px 0;
+    min-height: 100px;
+}
+
+/* Product Features List - Simple list like agrochowski.pl */
+.product-features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.product-features-list li {
+    padding: 8px 0;
+    font-family: var(--font-family);
+    font-size: 14px;
+    color: var(--color-dark);
+    display: flex;
+    align-items: baseline;
+}
+
+.product-features-list .feature-name {
+    color: #888;
+    min-width: 140px;
+    flex-shrink: 0;
+}
+
+.product-features-list .feature-value {
+    color: var(--color-dark);
+    font-weight: 500;
+}
+
+/* Shipping and Returns tab content */
+.shipping-info-content,
+.returns-info-content {
+    font-family: var(--font-family);
+}
+
+.shipping-info-content ul,
+.returns-info-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.shipping-info-content ul li,
+.returns-info-content ul li {
+    padding: 8px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.shipping-info-content ul li strong,
+.returns-info-content ul li strong {
+    color: var(--color-dark);
+}
+
+.shipping-info-content p,
+.returns-info-content p {
+    font-size: 13px;
+    color: #888;
+    margin-top: 15px;
+}
+
+/* Product Sidebar Sections */
+.product-sidebar-sections {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 1px solid #eee;
+}
+
+.product-sidebar-sections .section-title {
+    font-family: var(--font-family);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-dark);
+    margin-bottom: 25px;
+    text-transform: uppercase;
+}
+
+/* Trust Reviews Section */
+.trust-reviews-section {
+    margin-top: 50px;
+    padding: 40px 0;
+    background: var(--color-cream);
+}
+
+/* =========================================
+   CART & CHECKOUT
+   =========================================
+
+.product-container .product-add-to-cart {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.product-container .product-add-to-cart .qty {
+    width: 80px;
+}
+
+.product-container .product-add-to-cart .add-to-cart {
+    background-color: var(--color-primary);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-transform: uppercase;
+}
+
+.product-container .product-add-to-cart .add-to-cart:hover {
+    background-color: #5e3527;
+}
+
+/* Product Sidebar Sections */
+.product-sidebar-sections {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 1px solid #eee;
+}
+
+.product-sidebar-sections .section-title {
+    font-family: var(--font-family);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-dark);
+    margin-bottom: 25px;
+    text-transform: uppercase;
+}
+
+/* Trust Reviews Section */
+.trust-reviews-section {
+    margin-top: 50px;
+    padding: 40px 0;
+    background: var(--color-cream);
+}
+
+/* Shipping & Returns tab content */
+.shipping-info-content,
+.returns-info-content {
+    font-family: var(--font-family);
+}
+
+.shipping-info-content ul,
+.returns-info-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.shipping-info-content ul li,
+.returns-info-content ul li {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    color: #555;
+}
+
+.shipping-info-content ul li:last-child,
+.returns-info-content ul li:last-child {
+    border-bottom: none;
+}
+
+.shipping-info-content ul li strong,
+.returns-info-content ul li strong {
+    color: var(--color-dark);
+}
+
+.shipping-info-content p,
+.returns-info-content p {
+    font-size: 13px;
+    color: #888;
+    margin-top: 15px;
+}
+
+/* =========================================
+   CART & CHECKOUT
+   ========================================= */
+
+.cart-summary .cart-summary-totals .value {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-dark);
+}
+
+.checkout-step .step-title {
+    color: var(--color-primary);
+    font-weight: 500;
+}
+
+/* =========================================
+   RESPONSIVE
+   ========================================= */
+
+@media screen and (max-width: 767px) {
+    .custom-topbar {
+        font-size: 12px;
+    }
+    
+    .topbar-flex {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .topbar-right {
+        margin-top: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .header-content-wrapper {
+        flex-direction: column;
+        height: auto;
+        margin-left: 0;
+        gap: 15px;
+    }
+    
+    .logo-block {
+        margin-left: 0;
+    }
+    
+    .logo-block img {
+        width: 150px;
+    }
+    
+    .search-block {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 !important;
+    }
+    
+    .innermenu {
+        margin-left: 0;
+    }
+    
+    .product-miniature .product-title {
+        font-size: 14px;
+        line-height: 21px;
+        height: 42px;
+    }
+    
+    .product-miniature .product-price-and-shipping {
+        font-size: 16px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .header-row {
+        padding-top: 50px;
+    }
+    
+    .footer-container {
+        padding: 20px 0;
+    }
+    
+    .footer-links-wrapper {
+        margin-top: 20px;
+    }
+}
+
+/* =========================================
+   HOMEPAGE SECTIONS (AGROCHOWSKI STYLE)
+   ========================================= */
+
+/* Products Section Titles */
+.products-section-title {
+    font-family: var(--font-family);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 30px;
+    text-align: center;
+    position: relative;
+}
+
+.products-section-title::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 3px;
+    background: var(--color-primary);
+    margin: 15px auto 0;
+}
+
+.section-description {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+/* All products link */
+.all-product-link {
+    color: var(--color-primary);
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.all-product-link:hover {
+    color: #5e3527;
+}
+
+.all-product-link i {
+    vertical-align: middle;
+}
+
+/* Banner Section */
+.homepage-banner {
+    background: var(--color-cream);
+    padding: 20px 0;
+    margin-top: 40px;
+}
+
+.homepage-banner .banner-content {
+    overflow: hidden;
+}
+
+.homepage-banner img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Selected For You / Recommended Products sections */
+.selected-for-you,
+.recommended-products {
+    margin-top: 50px;
+    padding: 30px 0;
+}
+
+/* Trust Section (Warto nam zaufać) */
+.trust-section {
+    margin-top: 60px;
+    padding: 40px 0;
+    background: var(--color-cream);
+}
+
+.trust-section .products-section-title::after {
+    background: var(--color-gold);
+}
+
+/* Awards Section */
+.awards-section {
+    margin-top: 60px;
+    padding: 50px 0;
+    background: linear-gradient(135deg, var(--color-cream) 0%, #faf5e6 100%);
+}
+
+.awards-section .products-section-title {
+    color: var(--color-primary);
+    margin-bottom: 40px;
+}
+
+.awards-grid {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.award-item {
+    background: #fff;
+    padding: 30px 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.award-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 35px rgba(0,0,0,0.12);
+}
+
+.award-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.award-item h4 {
+    font-family: var(--font-family);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-dark);
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* About Section */
+.about-section {
+    margin-top: 60px;
+    padding: 50px 0;
+    background: #fff;
+}
+
+.about-section .products-section-title {
+    margin-bottom: 35px;
+}
+
+.about-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.about-content p {
+    font-family: var(--font-family);
+    font-size: 16px;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.about-content .about-closing {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-top: 25px;
+    font-style: italic;
+}
+
+/* Popular Authors Section */
+.popular-authors-section {
+    margin-top: 60px;
+    margin-bottom: 60px;
+    padding: 50px 0;
+    background: var(--color-cream);
+}
+
+.popular-authors-section .products-section-title::after {
+    background: var(--color-gold);
+}
+
+/* Featured/New Products styling */
+.featured-products,
+.new-products {
+    padding: 30px 0;
+}
+
+.featured-products .products-section-title,
+.new-products .products-section-title {
+    margin-bottom: 30px;
+}
+
+/* Page home container styling */
+.page-home {
+    background: #fff;
+}
+
+.page-home section {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0px;
+    padding-left: 15px;
+    padding-right: 15px;
+    background-color: var(--color-cream);
+}
+
+/* Responsive for homepage sections */
+@media screen and (max-width: 767px) {
+    .products-section-title {
+        font-size: 22px;
+    }
+    
+    .award-item {
+        padding: 20px 15px;
+    }
+    
+    .award-icon {
+        font-size: 36px;
+    }
+    
+    .award-item h4 {
+        font-size: 14px;
+    }
+    
+    .about-content p {
+        font-size: 14px;
+    }
+    
+    .about-content .about-closing {
+        font-size: 16px;
+    }
+    
+    .awards-section,
+    .about-section,
+    .popular-authors-section {
+        padding: 35px 0;
+    }
+}
+
+/* =========================================
+   PRODUCT PAGE - RESPONSIVE
+   ========================================= */
+
+@media screen and (max-width: 991px) {
+    .product-image-column,
+    .product-info-column {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .product-image-column {
+        margin-bottom: 30px;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .product-tabs-agrochowski .nav-tabs {
+        flex-direction: column;
+    }
+    
+    .product-tabs-agrochowski .nav-tabs .nav-link {
+        width: 100%;
+        text-align: center;
+        border-right: none;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .product-tabs-agrochowski .tab-content {
+        padding: 15px;
+    }
+    
+    .product-title-agrochowski {
+        font-size: 20px;
+    }
+    
+    .product-price-section .current-price {
+        font-size: 28px;
+    }
+    
+    .product-benefits-list {
+        padding: 15px;
+    }
+    
+    .product-benefits-list ul li {
+        font-size: 13px;
+    }
+}
+
+#wrapper {
+ background-color:  var(--color-cream); 
+ }
+ 
+ #footer {
+    padding-top: 0px;
+}
+
+#wrapper .banner {
+    margin-bottom: 0px;
+}
