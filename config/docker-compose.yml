@@ -60,7 +60,13 @@ services:
       - db
     networks:
       - agro_net
-
+      
+  memcached:
+    image: memcached:alpine
+    container_name: agrochowski_memcached
+    networks:
+      - agro_net
+      
 volumes:
   db_data:
   shop_data:
