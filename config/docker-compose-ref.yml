@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  prestashop:
+    image: agrochowskipl/be_201253_prestashop:latest
+    ports:
+      - target: 80
+        published: 20125
+        mode: host
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == student-swarm01
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+    volumes:
+      - type: bind
+        source: /opt/storage/actina15-20/block-storage/students/projects/student                                                                                                                                                             s-swarm-services/BE_196610/upload
+        target: /var/www/html/upload
+      - type: bind
+        source: /opt/storage/actina15-20/block-storage/students/projects/student                                                                                                                                                             s-swarm-services/BE_196610/download
+        target: /var/www/html/download
+    environment:
+      - DB_SERVER=admin-mysql_db
+      - DB_USER=root
+      - DB_PASSWD=student
+      - DB_NAME=BE_201253
+      - PS_DOMAIN=student-swarm01.maas:20125
+      - PS_ENABLE_SSL=0
+    networks:
+      - admin-mysql_default
+
+networks:
+  admin-mysql_default:
+    external: true
