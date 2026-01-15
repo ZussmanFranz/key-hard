@@ -1,5 +1,13 @@
 FROM prestashop/prestashop:1.7.8
 
+RUN apt-get update && apt-get install -y \
+    libmemcached-dev \
+    zlib1g-dev \
+    libssl-dev \
+    libsasl2-dev \
+    && pecl install memcached \
+    && docker-php-ext-enable memcached
+    
 # Enable Apache SSL module and default SSL site
 RUN a2enmod ssl
 RUN a2ensite default-ssl
