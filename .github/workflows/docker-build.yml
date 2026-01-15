@@ -2,7 +2,7 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ "master", "main", "claster_deployment", "claster-deployment-GA" ]
+    branches: [ "master", "main", "claster_deployment", "claster_deployment-GA" ]
 
 jobs:
   build:
