@@ -6,16 +6,14 @@ services:
     ports:
       - target: 80
         published: 20125
-        mode: host       # ZMIANA: Ingress pozwala na dostęp przez dowolny węzeł
+        mode: host       
     deploy:
       replicas: 1
-      # USUNIĘTO: placement (niech klaster sam wybierze najlepszy serwer)
       resources:
         limits:
           cpus: '0.50'
           memory: 512M
     volumes:
-      # ZMIANA: Używamy wolumenów nazwanych (Docker sam zarządza plikami)
       - shop_upload:/var/www/html/upload
       - shop_download:/var/www/html/download
       - shop_data:/var/www/html/img
@@ -48,8 +46,8 @@ services:
 volumes:
   shop_data:
   shop_config:
-  shop_upload:      # NOWOŚĆ
-  shop_download:    # NOWOŚĆ
+  shop_upload:      
+  shop_download:  
 
 networks:
   admin-mysql_default:
