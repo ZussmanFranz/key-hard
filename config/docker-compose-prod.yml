@@ -35,3 +35,22 @@ services:
           cpus: '0.50'
           memory: 1024M
     depends_on:
+      - memcached
+
+  memcached:
+    image: memcached:alpine
+    networks:
+      - agro_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+volumes:
+  shop_data:
+  shop_config:
+
+networks:
+  agro_net:
+    driver: overlay
