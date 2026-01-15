@@ -8,12 +8,11 @@ services:
     ports:
       - target: 80
         published: 20125
-        mode: host
 
     environment:
       # Adres jednego z węzłów klastra (gdzie stoi wspólna baza MySQL)
-      - DB_SERVER=admin-mysql_db
-      - DB_PORT=9099
+      - DB_SERVER=10.40.71.115
+      - DB_PORT=3306
       # Nazwa bazy utworzonej przez Ciebie na porcie 9099
       - DB_NAME=BE_201253
       # Użytkownik i hasło z dokumentacji lub utworzone w panelu
