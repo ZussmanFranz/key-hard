@@ -7,7 +7,9 @@ RUN apt-get update && apt-get install -y \
     libsasl2-dev \
     && pecl install memcached \
     && docker-php-ext-enable memcached
-    
+
+COPY ./img_backup /var/www/html/img
+COPY ./modules_backup /var/www/html/modules
 # Enable Apache SSL module and default SSL site
 RUN a2enmod ssl
 RUN a2ensite default-ssl
