@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  prestashop:
+    image: vartius/testagrochowski:v1
+    networks:
+      - agro_net
+    ports:
+      - target: 80
+        published: 20125
+        mode: host
+
+    environment:
+      # Adres jednego z węzłów klastra (gdzie stoi wspólna baza MySQL)
+      - DB_SERVER=10.40.71.115 
+      - DB_PORT=9099
+      # Nazwa bazy utworzonej przez Ciebie na porcie 9099
+      - DB_NAME=BE_201253 
+      # Użytkownik i hasło z dokumentacji lub utworzone w panelu
+      - DB_USER=root 
+      - DB_PASSWD=student
+      - PS_INSTALL_AUTO=0 # Ustaw 0, bo baza będzie importowana ręcznie/skryptem
+      - PS_DEV_MODE=0
+      - PS_ENABLE_SSL=1
+      # Domena klastra
+      - PS_DOMAIN=student-swarm01.maas:20125
+    volumes:
+      # Wolumen na dane sklepu (zdjęcia produktów itp.)
+      - shop_data:/var/www/html/img
+      - shop_config:/var/www/html/config
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1024M
+    depends_on:
+      - memcached
+
+  memcached:
+    image: memcached:alpine
+    networks:
+      - agro_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+volumes:
+  shop_data:
+  shop_config:
+
+networks:
+  agro_net:
+    driver: overlay
