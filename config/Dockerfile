@@ -21,6 +21,7 @@ RUN rm -rf /var/www/html/install
 RUN if [ -d "/var/www/html/admin" ]; then mv /var/www/html/admin /var/www/html/admin201253; fi
 RUN rm -rf /var/www/html/var/cache/*
 # Ensure permissions
+RUN chown -R www-data:www-data /var/www/html/
 RUN chmod 644 /etc/ssl/certs/ssl-cert-snakeoil.pem && \
     chmod 600 /etc/ssl/private/ssl-cert-snakeoil.key && \
     chown root:root /etc/ssl/private/ssl-cert-snakeoil.key
