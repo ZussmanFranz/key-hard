@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
 
 COPY ./img_backup /var/www/html/img
 COPY ./modules_backup /var/www/html/modules
+COPY ./parameters.php /var/www/html/app/config/parameters.php
+
 # Enable Apache SSL module and default SSL site
 RUN a2enmod ssl
 RUN a2ensite default-ssl
