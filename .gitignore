@@ -99,7 +99,7 @@
 /admin-dev/themes/new-theme/css/module/drop_rtl.css
 /admin-dev/themes/new-theme/css/right-sidebar_rtl.css
 
-themes/*/cache/*
+config/themes/*/cache/*
 
 # Config
 
@@ -108,7 +108,7 @@ config/settings.old.php
 config/xml/*
 config/themes/*
 !config/xml/themes/default.xml
-themes/*/config/settings_*.json
+config/themes/*/config/settings_*.json
 app/config/parameters.old.yml
 app/config/config.php
 
@@ -117,9 +117,9 @@ app/config/config.php
 modules/*
 override/*
 
-!themes/classic
-!themes/_core
-!themes/_libraries
+!config/themes/classic
+!config/themes/_core
+!config/themes/_libraries
 
 # Vendors and dependencies
 
@@ -135,12 +135,12 @@ translations/*
 mails/*
 !mails/themes/
 !mails/_partials/
-themes/default-bootstrap/lang/*
+config/themes/default-bootstrap/lang/*
 themes/default-bootstrap/modules/*/translations/*.php
-themes/default-bootstrap/mails/*
-!themes/default-bootstrap/mails/en/
-themes/default-bootstrap/modules/*/mails/*
-!themes/default-bootstrap/modules/*/mails/en
+config/themes/default-bootstrap/mails/*
+!config/themes/default-bootstrap/mails/en/
+config/themes/default-bootstrap/modules/*/mails/*
+!config/themes/default-bootstrap/modules/*/mails/en
 
 # MISC
 
