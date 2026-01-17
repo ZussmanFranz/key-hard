@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     && pecl install memcached \
     && docker-php-ext-enable memcached
 
-COPY themes /var/www/html/themes
+COPY ./themes /var/www/html/themes
 COPY ./img_backup /var/www/html/img
 COPY ./modules_backup /var/www/html/modules
 COPY ./parameters.php /var/www/html/app/config/parameters.php
