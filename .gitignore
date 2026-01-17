@@ -103,23 +103,9 @@ config/themes/*/cache/*
 
 # Config
 
-config/settings.inc.php
-config/settings.old.php
-config/xml/*
-config/themes/*
-!config/xml/themes/default.xml
-config/themes/*/config/settings_*.json
-app/config/parameters.old.yml
-app/config/config.php
-
 # Themes, modules and overrides
 
-modules/*
-override/*
 
-!config/themes/classic
-!config/themes/_core
-!config/themes/_libraries
 
 # Vendors and dependencies
 
@@ -131,16 +117,7 @@ php-cs-fixer
 
 # Translations and emails templates
 
-translations/*
-mails/*
-!mails/themes/
-!mails/_partials/
-config/themes/default-bootstrap/lang/*
-themes/default-bootstrap/modules/*/translations/*.php
-config/themes/default-bootstrap/mails/*
-!config/themes/default-bootstrap/mails/en/
-config/themes/default-bootstrap/modules/*/mails/*
-!config/themes/default-bootstrap/modules/*/mails/en
+
 
 # MISC
 
