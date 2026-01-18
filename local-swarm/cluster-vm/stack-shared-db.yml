@@ -1,0 +1,86 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: student
+      POSTGRES_USER: student
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp
+        mode: host
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: student
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - target: 3306
+        published: 3306
+        protocol: tcp
+        mode: host
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  adminer:
+    image: adminer:4
+    ports:
+      - target: 8080
+        published: 9099
+        protocol: tcp
+        mode: host
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  mongo:
+    image: mongo:6
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: student
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - target: 27017
+        published: 27017
+        protocol: tcp
+        mode: host
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  mongo-express:
+    image: mongo-express:1.0-20
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: student
+      ME_CONFIG_MONGODB_URL: mongodb://root:student@mongo:27017/
+    ports:
+      - target: 8081
+        published: 8081
+        protocol: tcp
+        mode: host
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+volumes:
+  pg_data:
+  mysql_data:
+  mongo_data:
