@@ -398,3 +398,5 @@ __marimo__/
 uv.lock
 pyproject.toml
 .python-version
+
+.vagrant/
