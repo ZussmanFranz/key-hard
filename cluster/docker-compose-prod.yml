@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  prestashop:
+    image: agrochowskipl/be_201253_prestashop:latest
+    ports:
+      - target: 80
+        published: 20125
+        mode: host
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1536M
+    volumes:
+      - shop_upload:/var/www/html/upload
+      - shop_download:/var/www/html/download
+      - shop_data:/var/www/html/img
+      - shop_config:/var/www/html/config
+    environment:
+      - DB_SERVER=admin-mysql_db
+      - DB_USER=root
+      - DB_PASSWD=student
+      - DB_NAME=BE_201253
+      - PS_DOMAIN=localhost:20125
+      - PS_ENABLE_SSL=0
+      - PS_INSTALL_AUTO=0
+      - PS_DEV_MODE=0
+    networks:
+      - admin-mysql_default
+      - agro_net
+    depends_on:
+      - memcached
+
+  memcached:
+    image: memcached:alpine
+    networks:
+      - agro_net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+
+volumes:
+  shop_data:
+  shop_config:
+  shop_upload:
+  shop_download:
+
+networks:
+  admin-mysql_default:
+    external: true
+  agro_net:
+    driver: overlay
