@@ -1,20 +1,34 @@
 <?php
-// importer.php - Wrzucany do /tmp/import/ w kontenerze
+// importer.php - Wersja naprawiona dla CLI
 if (php_sapi_name() !== 'cli') { exit; }
 
-// Ustawienia pamięci dla importu zdjęć
-ini_set('memory_limit', '512M'); 
-ini_set('max_execution_time', 0); // Bez limitu czasu
+// ==========================================
+// 1. MOCKOWANIE ŚRODOWISKA (KLUCZOWA POPRAWKA)
+// ==========================================
+// PrestaShop w CLI potrzebuje tych zmiennych, aby Shop::initialize() nie wyrzucił błędu
+$_SERVER['HTTP_HOST'] = 'localhost:20125'; // Adres zgodny z Twoim fix_db.sh
+$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+$_SERVER['REQUEST_URI'] = '/';
+$_SERVER['SERVER_SOFTWARE'] = 'Apache/2.4';
+$_SERVER['REQUEST_METHOD'] = 'GET';
 
-// ŚCIEŻKI ABSOLUTNE (Dostosowane do Twojego obrazu Docker)
-// Skrypt jest w /tmp, ale Presta jest w /var/www/html
+// Ustawienia pamięci
+ini_set('memory_limit', '512M'); 
+ini_set('max_execution_time', 0);
+
+// ŚCIEŻKI ABSOLUTNE
 define('_PS_ROOT_DIR_', '/var/www/html');
+define('_PS_MODE_DEV_', false); // Wyłączamy tryb deweloperski, żeby nie śmiecił HTML-em w konsoli
 
 if (!file_exists(_PS_ROOT_DIR_ . '/config/config.inc.php')) {
     die("BŁĄD: Nie znaleziono instalacji PrestaShop w " . _PS_ROOT_DIR_ . "\n");
 }
 
+// Ładowanie konfiguracji PrestaShop
 require_once(_PS_ROOT_DIR_ . '/config/config.inc.php');
+// Wymuszenie kontekstu sklepu (ID 1), jeśli detekcja z HTTP_HOST zawiedzie
+Context::getContext()->shop = new Shop(1); 
+
 require_once(_PS_ROOT_DIR_ . '/init.php');
 
 // Ładowanie JSON-ów
@@ -34,7 +48,7 @@ echo "[START] Rozpoczynam czyszczenie bazy i import...\n";
 function cleanupDatabase() {
     $db = Db::getInstance();
     
-    // Twarde czyszczenie tabel produktów i powiązanych
+    // Lista tabel do wyczyszczenia
     $tables = [
         'product', 'product_lang', 'product_shop', 
         'category_product', 'stock_available', 
@@ -52,8 +66,6 @@ function cleanupDatabase() {
     $db->execute('DELETE FROM ' . _DB_PREFIX_ . 'category_shop WHERE id_category > 2');
     $db->execute('ALTER TABLE ' . _DB_PREFIX_ . 'category AUTO_INCREMENT = 3');
     
-    // Czyścimy fizyczne foldery zdjęć (opcjonalne, ale zalecane dla porządku w volume shop_data)
-    // Presta trzyma je w /var/www/html/img/p/
     echo "[INFO] Czyszczenie starych danych zakończone.\n";
 }
 
@@ -73,6 +85,7 @@ function createCategory($data, $parentId = 2) {
     $category->link_rewrite = [1 => Tools::link_rewrite($data['name'])];
     $category->id_parent = $parentId;
     $category->active = 1;
+    $category->id_shop_default = 1;
     
     if ($category->add()) {
         $categoryMap[$data['id']] = $category->id;
@@ -103,11 +116,9 @@ function processImage($product, $url) {
     
     if ($image->add()) {
         $new_path = $image->getPathForCreation();
-        
-        // Folder tymczasowy wewnątrz kontenera (dzięki memory_limit PHP to wytrzyma)
         $tmpfile = tempnam(_PS_TMP_IMG_DIR_, 'ps_import');
         
-        // Context stream dla HTTPS bez weryfikacji (scraper też miał verify=False)
+        // Context stream dla HTTPS bez weryfikacji
         $arrContextOptions=array(
             "ssl"=>array(
                 "verify_peer"=>false,
@@ -115,17 +126,20 @@ function processImage($product, $url) {
             ),
         );  
         
-        if (file_put_contents($tmpfile, file_get_contents($url, false, stream_context_create($arrContextOptions)))) {
+        if (@file_put_contents($tmpfile, file_get_contents($url, false, stream_context_create($arrContextOptions)))) {
             $imagesTypes = ImageType::getImagesTypes('products');
-            ImageManager::resize($tmpfile, $new_path.'.jpg');
             
-            foreach ($imagesTypes as $imageType) {
-                ImageManager::resize($tmpfile, $new_path.'-'.$imageType['name'].'.jpg', $imageType['width'], $imageType['height']);
+            // Generowanie miniatur
+            if (file_exists($tmpfile) && filesize($tmpfile) > 0) {
+                ImageManager::resize($tmpfile, $new_path.'.jpg');
+                foreach ($imagesTypes as $imageType) {
+                    ImageManager::resize($tmpfile, $new_path.'-'.$imageType['name'].'.jpg', $imageType['width'], $imageType['height']);
+                }
             }
             unlink($tmpfile);
         } else {
             $image->delete();
-            echo "   ! Nie udało się pobrać zdjęcia: $url\n";
+            // echo "   ! Nie udało się pobrać zdjęcia: $url\n";
         }
     }
 }
@@ -134,51 +148,61 @@ function processImage($product, $url) {
 // PROCES GŁÓWNY
 // ==========================================
 
-cleanupDatabase();
+// Uruchamiamy czyszczenie
+try {
+    cleanupDatabase();
+} catch (Exception $e) {
+    die("BŁĄD BAZY DANYCH: " . $e->getMessage() . "\nSprawdź czy kontener bazy 'admin-mysql_db' jest dostępny dla tego kontenera.\n");
+}
 
 echo "[INFO] Importuję kategorie...\n";
-foreach ($jsonCategories as $catData) {
-    createCategory($catData, 2);
+if (!empty($jsonCategories)) {
+    foreach ($jsonCategories as $catData) {
+        createCategory($catData, 2);
+    }
+    Category::regenerateEntireNtree();
 }
-Category::regenerateEntireNtree();
 
 echo "[INFO] Importuję produkty...\n";
-foreach ($jsonProducts as $pData) {
-    $product = new Product();
-    $product->name = [1 => $pData['product_name']];
-    $product->link_rewrite = [1 => Tools::link_rewrite($pData['product_name'])];
-    
-    $desc = $pData['description'] ?? '';
-    if (!empty($pData['display_code'])) {
-        $desc .= "<br><strong>Kod produktu:</strong> " . $pData['display_code'];
-        $product->reference = $pData['display_code'];
-    }
-    $product->description = [1 => $desc];
-    $product->description_short = [1 => substr(strip_tags($desc), 0, 200)];
-    
-    $rawPrice = $pData['price']['current'] ?? "0";
-    $product->price = parsePrice($rawPrice);
-    
-    $sourceCatId = $pData['category_id'] ?? 0;
-    $targetCatId = $categoryMap[$sourceCatId] ?? 2;
-    $product->id_category_default = $targetCatId;
-    
-    $product->active = 1;
-    $product->show_price = 1;
-    $product->available_for_order = 1;
-    $product->condition = 'new';
-    $product->id_tax_rules_group = 1; // Domyślna grupa podatkowa (zwykle 23%)
-    
-    if ($product->add()) {
-        $product->addToCategories([$targetCatId]);
-        StockAvailable::setQuantity($product->id, 0, rand(5, 50));
+if (!empty($jsonProducts)) {
+    foreach ($jsonProducts as $pData) {
+        $product = new Product();
+        $product->name = [1 => $pData['product_name']];
+        $product->link_rewrite = [1 => Tools::link_rewrite($pData['product_name'])];
         
-        $imgUrl = $pData['thumbnail_high_res'] ?? $pData['thumbnail'] ?? null;
-        processImage($product, $imgUrl);
+        $desc = $pData['description'] ?? '';
+        if (!empty($pData['display_code'])) {
+            $desc .= "<br><strong>Kod produktu:</strong> " . $pData['display_code'];
+            $product->reference = $pData['display_code'];
+        }
+        $product->description = [1 => $desc];
+        $product->description_short = [1 => substr(strip_tags($desc), 0, 200)];
         
-        echo " + Produkt: {$pData['product_name']} (ID: {$product->id})\n";
-    } else {
-        echo " ! Błąd dodawania produktu: {$pData['product_name']}\n";
+        $rawPrice = $pData['price']['current'] ?? "0";
+        $product->price = parsePrice($rawPrice);
+        
+        $sourceCatId = $pData['category_id'] ?? 0;
+        $targetCatId = $categoryMap[$sourceCatId] ?? 2;
+        $product->id_category_default = $targetCatId;
+        
+        $product->active = 1;
+        $product->show_price = 1;
+        $product->available_for_order = 1;
+        $product->condition = 'new';
+        $product->id_tax_rules_group = 1;
+        $product->id_shop_default = 1;
+        
+        if ($product->add()) {
+            $product->addToCategories([$targetCatId]);
+            StockAvailable::setQuantity($product->id, 0, rand(5, 50));
+            
+            $imgUrl = $pData['thumbnail_high_res'] ?? $pData['thumbnail'] ?? null;
+            processImage($product, $imgUrl);
+            
+            echo " + Produkt: {$pData['product_name']} (ID: {$product->id})\n";
+        } else {
+            echo " ! Błąd dodawania produktu: {$pData['product_name']}\n";
+        }
     }
 }
 
