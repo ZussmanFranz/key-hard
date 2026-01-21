@@ -1,0 +1,72 @@
+name: ps_facebook
+services:
+  prestashop:
+    image: ${DOCKER_IMAGE_PRESTASHOP:-prestashop/prestashop-flashlight:latest}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      cloudflared:
+        condition: service_started
+    volumes:
+      - ..:/var/www/html/modules/ps_facebook:rw
+      - ./init-scripts:/tmp/init-scripts:ro
+    environment:
+      - ON_INIT_SCRIPT_FAILURE=fail
+      - DEBUG_MODE=true
+      - INIT_SCRIPTS_USER=root
+      - INIT_SCRIPTS_DIR=/tmp/init-scripts
+      - PS_DOMAIN=${TUNNEL_NAME}
+      - PS_PROTOCOL=https
+      - SSL_REDIRECT=true
+    ports:
+      - ${HOST_PORT_BIND_PRESTASHOP:-8000}:80
+    networks:
+      - prestashop
+
+  mysql:
+    image: mariadb:lts
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh", "--connect"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=prestashop
+      - MYSQL_PASSWORD=prestashop
+      - MYSQL_ROOT_PASSWORD=prestashop
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=prestashop
+    ports:
+      - ${HOST_PORT_BIND_MYSQL:-3306}:3306
+    networks:
+      - prestashop
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - ${HOST_PORT_BIND_PHP_MY_ADMIN:-6060}:80
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - PMA_USER=prestashop
+      - PMA_PASSWORD=prestashop
+      - MYSQL_ROOT_PASSWORD=prestashop
+    networks:
+      - prestashop
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run ${TUNNEL_NAME}
+    environment:
+      - TUNNEL_CRED_FILE=/credentials.json
+      - TUNNEL_URL=http://prestashop:80
+      - TUNNEL_HTTP_HOST_HEADER=${TUNNEL_NAME}
+    volumes:
+      - ~/.cloudflared/credentials.json:/credentials.json
+    networks:
+      - prestashop
+
+networks:
+  prestashop:
+    driver: bridge
