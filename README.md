@@ -15,40 +15,78 @@ It is based on an **e-commerce shop** selling software keys: [agrochowski.pl](ht
 
 ## Setup and usage
 
-**All scripts are intended to be initialized from repository root directory**.
+**All scripts are intended to be run from the repository root directory**.
 
-1. Initialize virtual environment, activate it and install required packages:
+### Prerequisites
 
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    pip install -r ./requirements.txt
-    ```
+- Docker and Docker Compose installed
+- Python 3.14+ (or use [uv](https://docs.astral.sh/uv/) package manager)
+- Chrome browser and ChromeDriver (for Selenium tests)
 
-2. Start prestashop docker container using
+### 1. Install dependencies
 
-    ```bash
-    ./config/restart_docker.sh
-    ./config/load_config.sh
-    ```
+Using pip:
 
-    After that, [Prestashop page](https://localhost:8443/pl) will be after that.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-3. Manage parsing and initializing, run
+Or using uv:
 
-    ```bash
-    python manage.py
-    ```
+```bash
+uv sync
+```
 
-    The interactive menu will be displayed after that. First manually enter [Prestashop admin panel](https://localhost:8443/admin) and log in. After that you need to choose `4. Enable Webservice (Generate API Key)` in manager script. After that you can use any other function in command-line interface.
+### 2. Start PrestaShop Docker containers
 
-4. Run web tests
+```bash
+./scripts/restart_docker.sh
+```
 
-    ```bash
-    python tests/test.py
-    ```
+This will start:
+- **PrestaShop shop** at [https://localhost:8443/pl](https://localhost:8443/pl)
+- **Admin panel** at [https://localhost:8443/admin](https://localhost:8443/admin)
+- **phpMyAdmin** at [http://localhost:8081](http://localhost:8081)
 
-    Before running this script, install **chrome driver** on your system.
+Admin credentials:
+- Email: `admin@agrochowski.pl`
+- Password: `StrongAdminPass123!`
+
+### 3. Use the Manager CLI
+
+Run the interactive management CLI:
+
+```bash
+python config/manage.py
+```
+
+Or with uv:
+
+```bash
+python config/manage.py --use-uv
+```
+
+The CLI provides the following options:
+
+1. **Run Scraper** - Parse categories, products, and images from the reference website
+2. **Run Initializer** - Import scraped data into PrestaShop via API
+3. **Reset Product Database** - Truncate product tables (clean IDs)
+4. **Enable Webservice** - Configure PrestaShop API access (run this first!)
+
+**First-time setup:**
+1. Wait for Docker containers to fully start
+2. Select option `4. Enable Webservice` to configure the API key
+3. Then use other options as needed
+
+### 4. Run Selenium tests
+
+```bash
+python tests/test.py
+```
+
+**Note:** Ensure ChromeDriver is installed and matches your Chrome browser version.
 
 ## Team members
 
@@ -64,42 +102,40 @@ key-hard
 |   README.md
 |   .gitignore
 |   requirements.txt
+|   pyproject.toml
 |   pytest.ini
-|   manage.py # App initialization and testing script
-|   initialization_summary.json # Initializator logs
 | 
-└───config # Docker container + prestashop database
-|   └───certs # Self-signed certificate
+└───config                  # Docker & PrestaShop configuration
+|   |   docker-compose.yml  # Container orchestration
+|   |   Dockerfile          # PrestaShop image build
+|   |   manage.py           # Main CLI for managing the app
+|   └───certs               # Self-signed SSL certificates
+|   └───scripts             # Webservice enablement scripts
 |
-└───themes # Source code of a web page
+└───scripts                 # Utility scripts
+|   |   restart_docker.sh   # Start/restart Docker containers
 |
-└───scraper # Scrapper from reference page
-|   └───src     # Source code of scraper
-|   └───results # Scraping results
-|       └───images # Sample images
+└───themes                  # PrestaShop theme files
+|   └───agrochowski         # Custom theme
 |
-└───tests # Web tests
-
+└───scraper                 # Web scraper module
+|   └───src                 # Source code
+|   |   └───initializer     # PrestaShop API initializer
+|   |   └───tests           # Scraper tests
+|   └───results             # Scraping output
+|       └───images          # Downloaded images
+|
+└───tests                   # Selenium web tests
 ```
 
 Every empty directory was initialized with `.gitkeep` file inside of it. **It is needed to be deleted after any other content is created inside such directory.**
 
-## Setup and usage
+## Running the Scraper Standalone
 
-### Scraper
+If you only want to run the scraper without the full PrestaShop setup:
 
-**All scripts are intended to be initialized from repository root directory**.
+```bash
+python scraper/src/parse.py
+```
 
-1. Initialize virtual environment, activate it and install required packages:
-
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    pip install -r ./requirements.txt
-    ```
-
-2. To parse categories, products and images, simply run
-
-    ```bash
-    python scraper/src/parse.py
-    ```
+This will parse categories, products, and images from the reference website and save them to `scraper/results/`.

@@ -1,0 +1,10 @@
+imports:
+  - { resource: ../common.yml }
+  - { resource: install.yml }
+  - { resource: presenter.yml }
+  - { resource: repository.yml }
+  - { resource: process.yml }
+
+services:
+  _defaults:
+    public: true
